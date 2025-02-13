@@ -9,15 +9,50 @@ The concept of a neighborhood requires the introduction of a *topology*. A topol
 
 ## Example Programs
 
+### Conway's Game of Life
+
+``` racket 
+(define conways 
+	(rule 
+        [(0 -> 1) (3 in 1)]
+        [(1 -> 1) ((2 3) in 1)]))
+
+(define world 
+	(make-world 100 100 (random 50 50)))
+
+(run conways world)
+```
+
+### Wireworld
+
+
+``` 
+(define wireworld ;; https://conwaylife.com/wiki/OCA:WireWorld
+	(rule #default identity
+		[('head -> 'tail)]
+		[('tail -> 'conductor)]
+		[('conductor -> 'head) ((1 2) in 'head)]))
+```
+
+
+### Star Wars
+``` 
+(define star-wars ;; https://conwaylife.com/wiki/OCA:Star_Wars
+    (rule #default add1
+        [(0 -> 0) (not 2 in 1)]  
+        [(1 -> 1) ((3 4 5) in 1)]
+        [(3 -> 0)]))  
+```
+
+
+
+
 
 ## Grammars and Signatures
 
-
 ```
-<RULE> := (rule 
-<NEIGHBORHOOD> 
-<DEFAULT>
-<BRANCH> ... )
+<RULE> := (rule <NEIGHBORHOOD> <DEFAULT> <BRANCH> ... )
+
 <NEIGHBORHOOD> := 
    | #:neighborhood <INLINE-NEIGHBORHOOD>
 			
@@ -25,20 +60,27 @@ The concept of a neighborhood requires the introduction of a *topology*. A topol
            | #:default <expr>
 
 <BRANCH> := [<TRANSITION> <COND>]
-   | [<TRANSITION>]
-   | [<STATE> <STATE>]
+        | [<TRANSITION>]
+        | [<STATE> <expr>]
+
+
 
 <TRANSITION> := (<STATE> -> <STATE>)
 
 <COND> := <expr>
-        | <exc?> <natural> in <STATE>
-        | <exc?> <natural> from <INLINE-NEIGHBORHOOD> ar
-        | <ex>
+        | <exc?> <COUNTS> in <STATE>
+        | <EXC?> <COUNTS> from <INLINE-NEIGHBORHOOD> are <STATE>
+        | <EXC?> <CELL> is <STATE>
 
+<COUNTS> := (<natural> <natural> ...)
+         | <natural>
+
+<EXC?> :=
+        | except
 
 <STATE> := <expr>
-
-
+<CELL> := <expr>
+<INLINE-NEIGHBORHOOD> := <list>
 ```
 
 
