@@ -45,7 +45,9 @@ The concept of a neighborhood requires the introduction of a *topology*. A topol
 
 ## Milestones
 
-- Create a `run` macro which can take render a cellular automata with no rules, just all cells staying in the same state
+- Create a `run` macro which can take render a cellular automata with no rules, just all cells staying in the same state. 
 - Create the `rule` macro, but without conditional checks, so all cells just loop through states
 - Implement the conditional portion of the `rule` macro to expand out the < cond> grammar
-- 
+- Augment the `from` clause of the cond grammar to support cells as well as offsets by prefixing cells with the keyword `absolute`. 
+- Add library functions to ease the creation of topologies. 
+- Add library functions to translate from existing cellular automata specification strings to our DSL
