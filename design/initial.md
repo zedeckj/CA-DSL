@@ -153,8 +153,6 @@ We'd like to add syntactic sugar and built in functions to make defintions like 
 
 
 <INLINE-NEIGHBORHOOD> ::= <list>
-
-
 ```
 
 ```
@@ -166,15 +164,16 @@ We'd like to add syntactic sugar and built in functions to make defintions like 
 (deine-type (Renderer C O S) ((ColorMap S) -> (World C O S -> Image)))
 (define-type (World C O S) (All (C O S) (Struct (StateMap C S) (Topology C O) (ActiveFilter C))))
 
-;; which is a struct representing the current state of the cells, the topology of the how the cells are connected, and a predicate to determine whether a cell is fixed in a state or can change. Type parameters C, O, and S represent the type of the cells, the offsets, and the states respectively.
+;; Type parameters C, O, and S represent the type of the cells, the offsets, and the states respectively.
 
 ;; Renderer for a 2d cells represented by cartesian coordinates.
-(All (S) (ColorMap S) -> ((World Posn Any S) -> Image))
+(: render2d : (Renderer Posn Any Any))
 (define (render-2d color-map) ... )
 
-;; (All (C O S) (World C O S) (Rule C S) (Renderer C O S) -> (World C O S))
+;; Main entry point to program. Launches visualization for the given game.
+(: run : (All (C O S) (World C O S) (Rule C S) (Renderer C O S) -> (World C O S)))
 ;; (define (run world rule renderer) ...)
-
+```
 
 ## Milestones
 
