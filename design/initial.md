@@ -28,7 +28,7 @@ The concept of a neighborhood requires the introduction of a *topology*. A topol
 
 ``` 
 (define wireworld ;; https://conwaylife.com/wiki/OCA:WireWorld
-	(rule #default identity
+	(rule #:default identity
 		[('head -> 'tail)]
 		[('tail -> 'conductor)]
 		[('conductor -> 'head) ((1 2) in 'head)]))
@@ -38,58 +38,92 @@ The concept of a neighborhood requires the introduction of a *topology*. A topol
 ### Star Wars
 ``` 
 (define star-wars ;; https://conwaylife.com/wiki/OCA:Star_Wars
-    (rule #default add1
-        [(0 -> 0) (not 2 in 1)]  
+    (rule #:default add1
+        [(0 -> 0) (except 2 in 1)]  
         [(1 -> 1) ((3 4 5) in 1)]
         [(3 -> 0)]))  
 ```
 
+### Rule 110 (Example of 1D Rule)
 
+```
+(define rule-110 ;; https://en.wikipedia.org/wiki/Rule_110
+   (rule #:neighborhood '(1, -1)
+      [(0 -> 1) 
+
+```
 
 
 
 ## Grammars and Signatures
 
 ```
-<RULE> := (rule <NEIGHBORHOOD> <DEFAULT> <BRANCH> ... )
+<RULE> ::= (rule <NEIGHBORHOOD> <DEFAULT> <BRANCH> ... )
 
-<NEIGHBORHOOD> := 
-   | #:neighborhood <INLINE-NEIGHBORHOOD>
+<NEIGHBORHOOD> ::= 
+               | #:neighborhood <INLINE-NEIGHBORHOOD>
 			
-<DEFAULT> := 
+<DEFAULT> ::= 
            | #:default <expr>
 
-<BRANCH> := [<TRANSITION> <COND>]
+<BRANCH> ::= [<TRANSITION> <COND>]
         | [<TRANSITION>]
         | [<STATE> <expr>]
 
 
 
-<TRANSITION> := (<STATE> -> <STATE>)
+<TRANSITION> ::= (<STATE> -> <STATE>)
 
-<COND> := <expr>
+<COND> ::= <expr>
         | <exc?> <COUNTS> in <STATE>
         | <EXC?> <COUNTS> from <INLINE-NEIGHBORHOOD> are <STATE>
-        | <EXC?> <CELL> is <STATE>
+        | <EXC?> <NEIGHBOR> is <STATE>
 
-<COUNTS> := (<natural> <natural> ...)
+<COUNTS> ::= (<natural> <natural> ...)
          | <natural>
+         | none
+         | any
+         | all
 
-<EXC?> :=
+<INLINE-NEIGHBORHOOD> ::= <list of NEIGHBOR>
+
+<NEIGHBOR> ::= <OFFSET>
+            | absolute <CELL>
+
+<EXC?> ::=
         | except
 
-<STATE> := <expr>
-<CELL> := <expr>
-<INLINE-NEIGHBORHOOD> := <list>
+<STATE> ::= <expr>
+
+<CELL> ::= <expr>
+
+
+
+<OFFSET> ::= <expr>
+
+
+<INLINE-NEIGHBORHOOD> ::= <list>
+
+
 ```
 
+```
+;; (Posn -> Any) (State -> Color) -> Image
+;; Renderer for a 2d cells represented by cartesian coordinates.
+(define (render-2d state-map color-map) ... )
+
+;; ()
 
 
 ## Milestones
 
-- Create a `run` macro which can take render a cellular automata with no rules, just all cells staying in the same state. 
-- Create the `rule` macro, but without conditional checks, so all cells just loop through states
-- Implement the conditional portion of the `rule` macro to expand out the < cond> grammar
-- Augment the `from` clause of the cond grammar to support cells as well as offsets by prefixing cells with the keyword `absolute`. 
-- Add library functions to ease the creation of topologies. 
+- Create a 2d renderer which can map cells represented as posns to an image
+- Create the `make-2d-topology` function which can create a 
+- Create a barebones `run` function which can render a cellular automata with no rules, just all cells staying in the same state by passing in a simple 3x3 rectangular topology with walls on the edges and using the identity function for the rule, and then creating our 2d renderer which can take in a mapping of posn -> state and render using a default color scheme.
+- Create the `rule` macro without support for branches nor support for the #:neighborhood named argument. We will just show that it can change from one state to another on the first generation and then stay there. 
+- Implement support for specifying a neighborhood.
+- Implement the branch portion of the `rule` macro without support for conds
+- Implement support for < cond>
+- Add library functions to ease the creation of topologies, such as using a builder pattern to build off of a default 2d plane and then connecting edges, changing the shape of the cell, and adding walls and holes.
 - Add library functions to translate from existing cellular automata specification strings to our DSL
+- Make the second argument to our render2d optional, and just use a default color scheme. 
