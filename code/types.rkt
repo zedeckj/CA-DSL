@@ -50,12 +50,15 @@
 )
 ;; A function which, when given a World, creates a new StateMap representing a time stepped
 ;; instance of the World's StateMap
-(define-type (Rule C S) ((World C Any S) -> (StateMap C S)))
+(define-type (Rule C O S) ((StateMap C S) (Topology C O) -> (StateMap C S)))
+
 (define-struct (C O S) world 
     ([state-map : (StateMap C S)] 
     [topology : (Topology C O)] 
     [active-filter : (ActiveFilter C)]) #:type-name World)
-(define-type (Renderer C O S) (All (C O S) (ColorMap S) (World C O S) -> Image))
+
+
+(define-type (Renderer C O S) ((World C O S) -> Image))
 
 (module+ examples 
     (provide (all-defined-out))
