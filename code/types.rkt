@@ -24,12 +24,13 @@
             (Posn 2 0) 'alive (Posn 1 0) 'dead (Posn 2 0) 'alive 
 
             (Posn 3 4) 'dead))
+    
 )
 
 
 
 ;; Represents a transition from cell and an offset to a new cell.
-(define-type (Topology C O) (C O -> C))
+(define-type (Topology C O) (C O -> (Union C Void)))
 
 ;; Represents a function which takes in a cell and returns true if it should be actively
 ;; updated by a rule.
@@ -58,10 +59,13 @@
     [active-filter : (ActiveFilter C)]) #:type-name World)
 
 
+
+
 (define-type (Renderer C O S) ((World C O S) -> Image))
 
 (module+ examples 
     (provide (all-defined-out))
+
 )
 
 (provide StateMap Topology ActiveFilter ColorMap Rule Renderer World (struct-out world) (struct-out posn)  Posn);; posn-x posn-y Posn posn?)
