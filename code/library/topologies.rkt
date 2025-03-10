@@ -4,13 +4,21 @@
 
 (: moore-neighborhood-outline : (Positive-Integer -> (Neighborhood Posn)))
 (define (moore-neighborhood-outline distance)
-    (: helper : Nonnegative-Integer -> (Setof Posn))
+    ; i is the index as we traverse all of the sides simultaneously
+    (: helper : Integer -> (Setof Posn))
     (define (helper i)
-        (set (Posn distance i) (Posn (* -1 distance) i) 
-            (Posn i distance) (Posn (* -1 distance) i)))
-    (define l : (Listof Nonnegative-Integer) (range 1 (add1 distance)))
+        (set
+            (Posn distance i) ; right side
+            (Posn (* -1 distance) i) ; left side
+            (Posn i distance) ; top side
+            (Posn i (* -1 distance)))) ; bottom side
+    (define l : (Listof Integer) (range (* -1 distance) (add1 distance)))
     (define nested : (Listof (Setof Posn)) (map helper l))
     (apply set-union (first nested) (rest nested)))
+(module+ test
+    (check-equal? (moore-neighborhood-outline 1) (set (Posn -1 -1) (Posn -1 0) (Posn -1 1)
+        (Posn 0 -1) (Posn 0 1)
+        (Posn 1 -1) (Posn 1 0) (Posn 1 1))))
 
 (: moore-neighborhood (->* () (Positive-Integer) (Neighborhood Posn)))
 (define (moore-neighborhood [distance 1])
@@ -18,9 +26,8 @@
     (define nested : (Listof (Setof Posn)) 
         (map moore-neighborhood-outline (cast layer-indexes (Listof Positive-Integer))))
     (apply set-union (first nested) (rest nested)))
-
 (module+ test 
-    (check-equal? (moore-neighborhood) (list (Posn -1 -1) (Posn -1 0) (Posn -1 1)
+    (check-equal? (moore-neighborhood) (set (Posn -1 -1) (Posn -1 0) (Posn -1 1)
         (Posn 0 -1) (Posn 0 1)
         (Posn 1 -1) (Posn 1 0) (Posn 1 1)))
     #;(check-equal? (moore-neighborhood 2) 
@@ -76,8 +83,7 @@ else:
 (define (in-cartesian-region point max-point #:origin [origin (Posn 0 0)])
     (let ([x (posn-x point)]
             [y (posn-y point)])
-        (or (> x (posn-x max-point)) (> y (posn-y max-point)) (< y (posn-y origin)) (< x (posn-x origin)))))
-
+        (not (or (> x (posn-x max-point)) (> y (posn-y max-point)) (< y (posn-y origin)) (< x (posn-x origin))))))
 
 (: make-wrapping-cartesian-topology : (Integer Integer Integer Integer -> (Topology Posn Posn)))
 (define (make-wrapping-cartesian-topology x-min x-max y-min y-max)
@@ -88,7 +94,7 @@ else:
 (module+ test 
     (define w (make-wrapping-cartesian-topology 0 10 0 10))
     (check-equal? (w (Posn 5 5) (Posn 1 1)) (Posn 6 6))
-    (check-equal? (w (Posn 0 10) (Posn 1 1)) (Posn 1 1))
+    (check-equal? (w (Posn 0 10) (Posn 1 1)) (Posn 1 0))
 )
 
 ( : init-2d-world : (All (S) Positive-Integer Positive-Integer (Posn -> S) -> (World Posn Posn S)))

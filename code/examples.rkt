@@ -9,8 +9,7 @@
     (hash 
         (Posn 0 0) 'alive (Posn 1 0) 'dead (Posn 2 0) 'alive
         (Posn 1 0) 'dead (Posn 1 1) 'alive (Posn 2 1) 'dead
-        (Posn 2 0) 'alive (Posn 1 0) 'dead (Posn 2 0) 'alive 
-        (Posn 3 4) 'dead))
+        (Posn 2 0) 'alive (Posn 1 0) 'dead (Posn 2 0) 'alive))
 (define STATEMAP-3x3-CENTER-ALIVE : (StateMap Posn AliveOrDead)
     (make-statemap-2d 
     (list 'dead 'dead 'dead)

@@ -5,7 +5,7 @@
   (require "expected-images.rkt" "examples.rkt"))
 
 (require typed/2htdp/image)
-(require "types.rkt" "utils.rkt" "library/colormaps.rkt")
+(require "types.rkt" "library/colormaps.rkt")
 
 (define MAIN-DISPLAY-WIDTH 2000)
 (define MAIN-DISPLAY-HEIGHT 2000)

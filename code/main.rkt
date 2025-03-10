@@ -54,10 +54,9 @@
     (big-bang world :(World C O S)
         (name "CA Sim")
         [to-draw renderer 1000 1000]
-        [on-tick (lambda ([ws : (World C O S)])  (tick-rule ws rule))]))
+        [on-tick (lambda ([ws : (World C O S)]) (tick-rule ws rule)) 1/2]))
 
-(define renderer : (Renderer Posn Posn (U 'dead 'alive)) (make-2d-renderer conway-color-map))
-(define-type Conway-States (U 'alive 'dead))
-(define states : (Listof Conway-States) (list 'dead 'alive))
-(define world : (World Posn Posn Conway-States) (random-world 200 200 states))
+(define renderer : (Renderer Posn Posn AliveOrDead) (make-2d-renderer conway-color-map))
+(define states : (Listof AliveOrDead) (list 'dead 'alive))
+(define world : (World Posn Posn AliveOrDead) (random-world 200 200 states))
 (run world conway-rule renderer)
