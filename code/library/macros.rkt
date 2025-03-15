@@ -1,26 +1,65 @@
 #lang typed/racket
 (require (for-syntax racket/syntax syntax/parse))
+(require "../types.rkt" "rule.rkt")
+(module+ test
+(require syntax/macro-testing)
+(require typed/rackunit))
 
-
+(define-syntax (parse-condition stx)
+  (syntax-parse stx
+    [(_ neighbors (count:expr ...) (~datum in) state:expr) #'((has-neighbors-in-state? state neighbors (list count ...)))]
+    [(_ neighbors count:expr (~datum in) state:expr) #'((has-neighbors-in-state? state neighbors (list count)))]))
 
 (define-syntax (parse-clauses stx)
   (syntax-parse stx
-    [(_ state ((in-state:expr -> out-state:expr) condition:expr) clauses ...+)
-     #'(if (and condition (equal? in-state state)) out-state (parse-clauses state clauses ...))]
-    [(_ _ ((~datum default) out-state:expr)) #'out-state]))
+    [(_ neighbors:id state-type:id state:id ((in-state:expr (~datum ->) out-state:expr) condition:expr) clauses ...+)
+     #'(let ([state-name : state-type out-state]) ; for type checking, even if shortcircuiting
+     (if 
+      (and (parse-condition neighbors condition) (equal? in-state state))
+      state-name 
+      (parse-clauses neighbors state-type state clauses ...)))]
+    [(_ _ state-type:id _ ((~datum default) out-state:expr)) 
+      #'(let ([state-name : state-type out-state]) state-name)]))
 
 (define-syntax (rule stx)
   (syntax-parse stx
     [(_
       #:state-type state-type:id
+      #:neighborhood neighborhood:expr
       clauses:expr ...)
+        #'(lambda #:∀ (C O) ([state-map : (StateMap C state-type)]
+                  [topology : (Topology C O)])
+          (lambda ([state : state-type])
+          (let ([neighbors (get-neighbors cell state-map topology neighborhood)])
+           (parse-clauses neighbors state-type state clauses ...))))]))
 
-        #'(lambda ([state : state-type]) (parse-clauses state clauses ...))]))
+#;(define (conway-rule state-map topology)
+    (mapper state-map
+        (lambda ([cell : Posn]
+                [in-state : AliveOrDead])
+            (let ([neighbors (get-neighbors cell state-map topology (moore-neighborhood))])
+                (match in-state
+                    ['alive (if (has-neighbors-in-state? 'alive neighbors '(2 3)) 'alive 'dead)]
+                    ['dead (if (has-neighbors-in-state? 'alive neighbors '(3))'alive 'dead)])))))
 
-(define test
-  (rule
-   #:state-type Integer
-   [(0 -> 1) #f]
-   [(1 -> 1) #t]
-   [default 0]))
 
+#;(module+ test
+  (check-exn #rx"type mismatch" 
+    (lambda () (convert-compile-time-error (phase1-eval
+      (rule
+    #:state-type Integer
+    [(0 -> 'a) #f]
+    [(1 -> 1) #t]
+    [default 0]))
+    )))
+    
+    (check-exn #rx"type" (lambda () (convert-compile-time-error (phase1-eval (let ([x : Integer 'a]) x))))))
+  
+
+(define conways
+  (rule 
+    #:state-type AliveOrDead
+    #:neighborhood (moore-neighborhood)
+    [('dead -> 'alive) 3 in 'alive]
+    [('alive -> 'alive) (2 3) in 'alive]
+    [default 'dead]))
