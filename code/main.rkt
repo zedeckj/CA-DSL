@@ -82,3 +82,5 @@
 #;(define states : (Listof AliveOrDead) (list 'dead 'alive))
 #;(define world : (World Posn Posn AliveOrDead) (random-world 50 50 states))
 #;(run world conways renderer)
+
+#;(define world ())

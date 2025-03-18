@@ -125,4 +125,9 @@ else:
                 (first states))))
     (init-2d-world max-x max-y random-state))
 
+(: generate-random : )
+
+
+
+
 (provide (all-defined-out))

@@ -26,20 +26,4 @@
           neighbors)])
     (ormap (lambda ([c : Nonnegative-Integer]) (= c found-count)) counts)))
 
-
-(: mapper : (All (C S) (StateMap C S) (C S -> S) -> (StateMap C S)))
-;; Applies a function which takes a cell and state to a copy of a given StateMap
-(define (mapper state-map rule-body)
-  (hash-map/copy
-   state-map
-   (lambda ([cell : C] [in-state : S])
-     (values cell (rule-body cell in-state)))))
-
-
 (provide get-neighbors has-neighbors-in-state?)
-
-#;(minirule
-   #:neighborhood moore
-   [('alive -> 'alive) ((2 3) in 'alive)]
-   [('dead -> 'alive) ((3) in 'alive)]
-   [default 'dead])
