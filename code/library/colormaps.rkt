@@ -14,6 +14,7 @@
 (define PINK (make-color 255 200 200))
 (define ORANGE (make-color 255 135 0))
 (define GRAY (make-color 100 100 100))
+(define TRANSPARENT (make-color 0 0 0 0))
 (define COLOR_LIST (list WHITE BLACK RED GREEN BLUE YELLOW PURPLE PINK ORANGE))
 
 (: colormap-alive-or-dead : (AliveOrDead -> Color))
