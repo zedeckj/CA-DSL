@@ -1,7 +1,10 @@
 #lang typed/racket
+
+;;; Functionality to display a window 
+
 (require (for-syntax syntax/parse) (for-syntax racket/syntax))
 (require typed/2htdp/image)
-(require "types.rkt" "utils.rkt" "renderer.rkt" "library/colormaps.rkt" "library/topologies.rkt" "library/rule.rkt")
+(require "types.rkt" "utils.rkt" "renderer.rkt" "library/colormaps.rkt" "library/topologies.rkt" "library/rule.rkt" "library/macros.rkt")
 (module+ test (require rackunit))
 (require (rename-in typed/2htdp/universe [big-bang broken-big-bang]))
 ;; The typed/2htdp/universe package incompletely replicates big-bang syntax by excluding the optional width and height arguments in the `to-draw` clause. This macro imperfectly approximates having those optional arguments by drawing a transparent rectangle of the appropriate size behind whatever the provided to-draw function draws. In big-bang, the size of the window is determined by the size of the image provided at tick 0. 
@@ -53,10 +56,29 @@
 (define (run world rule renderer)
     (big-bang world :(World C O S)
         (name "CA Sim")
-        [to-draw renderer 1000 1000]
-        [on-tick (lambda ([ws : (World C O S)]) (tick-rule ws rule)) 1/2]))
+        [to-draw renderer DISPLAY-WIDTH DISPLAY-HEIGHT]
+        [on-tick (lambda ([ws : (World C O S)]) (tick-rule ws rule)) 1]))
 
-(define renderer : (Renderer Posn Posn AliveOrDead) (make-2d-renderer conway-color-map))
+
+(provide run)
+
+
+(define renderer : (Renderer Posn Posn AliveOrDead) (make-2d-renderer colormap-alive-or-dead))
 (define states : (Listof AliveOrDead) (list 'dead 'alive))
-(define world : (World Posn Posn AliveOrDead) (random-world 200 200 states))
-(run world conway-rule renderer)
+(define world : (World Posn Posn AliveOrDead) (random-world 50 50 states))
+(run world conways renderer)
+
+
+
+
+
+#;(define-rule some-rule : (Rule Posn Posn AliveOrDead)
+  (rule 
+    [('dead -> 'alive) 4 in 'alive]
+    [('alive -> 'alive) (2 5) in 'alive]
+    [default 'dead]))
+
+#;(define renderer : (Renderer Posn Posn AliveOrDead) (make-2d-renderer colormap-alive-or-dead))
+#;(define states : (Listof AliveOrDead) (list 'dead 'alive))
+#;(define world : (World Posn Posn AliveOrDead) (random-world 50 50 states))
+#;(run world conways renderer)

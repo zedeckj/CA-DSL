@@ -110,8 +110,8 @@ else:
 
 ( : random-world : (All (S) (->* (Positive-Integer Positive-Integer (Listof S)) (#:seed (Union False Positive-Integer)) (World Posn Posn S))))
 (define (random-world max-x max-y states #:seed (seed #f))
-    (define start-rand-x 10)
-    (define start-rand-y 10)
+    (define start-rand-x (/ max-x 4))
+    (define start-rand-y (/ max-y 4))
     (define end-rand-x (/ (* 3 max-x) 4))
     (define end-rand-y (/ (* 3 max-y) 4))
     (when seed

@@ -1,5 +1,7 @@
 #lang typed/racket
 
+;;; Contains general utility functions
+
 (module+ test (require typed/rackunit))
 
 ;; List abstraction which augments a list with indexes, similar to `enumerate` in Python.  

@@ -1,37 +1,46 @@
 #lang typed/racket
 (require (for-syntax racket/syntax syntax/parse))
-(require "../types.rkt" "rule.rkt")
+(require "../types.rkt" "rule.rkt" "topologies.rkt")
 (module+ test
 (require syntax/macro-testing)
 (require typed/rackunit))
 
 (define-syntax (parse-condition stx)
   (syntax-parse stx
-    [(_ neighbors (count:expr ...) (~datum in) state:expr) #'((has-neighbors-in-state? state neighbors (list count ...)))]
-    [(_ neighbors count:expr (~datum in) state:expr) #'((has-neighbors-in-state? state neighbors (list count)))]))
+    [(_ neighbors:expr (count:expr ...+) (~datum in) state:expr) #'((inst has-neighbors-in-state? AliveOrDead) state neighbors (list count ...))]
+    [(_ neighbors:expr count:expr (~datum in) state:expr) #'((inst has-neighbors-in-state? AliveOrDead) state neighbors (list count))]))
 
 (define-syntax (parse-clauses stx)
   (syntax-parse stx
-    [(_ neighbors:id state-type:id state:id ((in-state:expr (~datum ->) out-state:expr) condition:expr) clauses ...+)
-     #'(let ([state-name : state-type out-state]) ; for type checking, even if shortcircuiting
-     (if 
-      (and (parse-condition neighbors condition) (equal? in-state state))
-      state-name 
-      (parse-clauses neighbors state-type state clauses ...)))]
+    [(_ neighbors:id state-type:id state:id 
+      ((in-state:expr (~datum ->) out-state:expr) condition:expr ...+) clauses ...+)
+      #'(let ([state-name : state-type out-state]) ; for type checking, even if shortcircuiting
+      (if 
+        (and (parse-condition neighbors condition ...) (equal? in-state state))
+        state-name 
+        (parse-clauses neighbors state-type state clauses ...)))]
+      
     [(_ _ state-type:id _ ((~datum default) out-state:expr)) 
       #'(let ([state-name : state-type out-state]) state-name)]))
+
 
 (define-syntax (rule stx)
   (syntax-parse stx
     [(_
       #:state-type state-type:id
+      #:cell-type cell-type:id
+      #:offset-type offset-type:id
       #:neighborhood neighborhood:expr
       clauses:expr ...)
-        #'(lambda #:∀ (C O) ([state-map : (StateMap C state-type)]
-                  [topology : (Topology C O)])
-          (lambda ([state : state-type])
-          (let ([neighbors (get-neighbors cell state-map topology neighborhood)])
-           (parse-clauses neighbors state-type state clauses ...))))]))
+        #'(lambda
+                ([state-map : (StateMap cell-type state-type)]
+                 [topology : (Topology cell-type offset-type)])
+            (hash-map/copy state-map 
+              (lambda ([cell : cell-type]
+                       [in-state : state-type])
+                (values cell
+                  (let ([neighbors : (Listof state-type) (get-neighbors cell state-map topology neighborhood)])
+                    (parse-clauses neighbors state-type in-state clauses ...))))))]))
 
 #;(define (conway-rule state-map topology)
     (mapper state-map
@@ -56,10 +65,25 @@
     (check-exn #rx"type" (lambda () (convert-compile-time-error (phase1-eval (let ([x : Integer 'a]) x))))))
   
 
-(define conways
+(define conways : (Rule Posn Posn AliveOrDead)
   (rule 
     #:state-type AliveOrDead
+    #:cell-type Posn
+    #:offset-type Posn
     #:neighborhood (moore-neighborhood)
     [('dead -> 'alive) 3 in 'alive]
     [('alive -> 'alive) (2 3) in 'alive]
     [default 'dead]))
+
+#;(define-rule conways 
+    (: Posn Posn AliveOrDead :)
+    [('dead -> 'alive) 3 in 'alive]
+    [('alive -> 'alive) (2 3) in 'alive]
+    [default 'dead])
+
+#;(define conways
+    (lifelike
+    [('dead -> 'alive) 3 in 'alive]
+    [('alive -> 'alive) (2 3) in 'alive]))
+
+(provide conways)
