@@ -47,12 +47,9 @@
 #|
 `lifelike` macro
 
-<lifelike> ::= (lifelike <life-clause> ...)
-
-<life-clause> ::= [<life-trans> <life-cond>]
-
-<life-trans> ::= born
-               | survive
+<lifelike> ::= (lifelike 
+        [born <life-cond>]
+        [survive <life-cond>])
 
 <life-cond> ::= <number> in <alive-or-dead>
               | (<number> <number> ...) in <alive-or-dead>
