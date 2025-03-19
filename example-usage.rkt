@@ -14,13 +14,13 @@
     (for-syntax syntax/parse syntax/macro-testing))
 
 ;; In CA, this is often expressed as "B3/S23"
-(define conways : (Rule Posn Posn AliveOrDead)
+(define conways : LifelikeRule
     (lifelike 
-        [born 3 in 'alive]
-        [survive (2 3) in 'alive]))
+        [born 3]
+        [survive 2 3]))
         
-(define world : (World Posn Posn AliveOrDead) (random-world 50 50 ALIVE-OR-DEAD-STATES))
-(define renderer : (Renderer Posn Posn AliveOrDead) (make-2d-renderer colormap-alive-or-dead))
+(define world : LifelikeWorld (random-world 50 50 ALIVE-OR-DEAD-STATES))
+(define renderer : LifelikeRenderer (make-2d-renderer colormap-alive-or-dead))
 (run world conways renderer)
 
 
@@ -34,7 +34,7 @@
     [('alive -> 'alive) (2 3) in 'alive]
     [default 'dead])
 
-; rule roughly expands to 
+; rule roughly further expands to 
 #;(define (conway-rule state-map topology)
     (mapper state-map
         (lambda ([cell : Posn]
@@ -48,14 +48,9 @@
 `lifelike` macro
 
 <lifelike> ::= (lifelike 
-        [born <life-cond>]
-        [survive <life-cond>])
+        [born <number> <number> ...]
+        [survive <number> <number> ...])
 
-<life-cond> ::= <number> in <alive-or-dead>
-              | (<number> <number> ...) in <alive-or-dead>
-
-<alive-or-dead> ::= 'alive
-                  | 'dead
 |#
 
 #|

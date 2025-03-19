@@ -75,8 +75,8 @@
     #:cell-type Posn
     #:offset-type Posn 
     #:neighborhood (moore-neighborhood)
-    [('dead -> 'alive) born-cond ...]
-    [('alive -> 'alive) survive-cond ...] 
+    [('dead -> 'alive) (born-cond ...) in 'alive]
+    [('alive -> 'alive) (survive-cond ...) in 'alive] 
     [default 'dead])]))
 
 (provide lifelike rule)
