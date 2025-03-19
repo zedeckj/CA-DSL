@@ -67,12 +67,16 @@
 ;; Shorthand for making a rule with alive and dead states with a default state of dead and uses a moore neighborhood with cells and offsets represented as Posn
 (define-syntax (lifelike stx)
   (syntax-parse stx
-    [(_ clauses:expr ...) 
+    [(_ 
+    [(~datum born) born-cond:expr ...+]
+    [(~datum survive) survive-cond:expr ...+])
     #'(rule 
     #:state-type AliveOrDead
     #:cell-type Posn
     #:offset-type Posn 
     #:neighborhood (moore-neighborhood)
-    clauses ... [default 'dead])]))
+    [('dead -> 'alive) born-cond ...]
+    [('alive -> 'alive) survive-cond ...] 
+    [default 'dead])]))
 
 (provide lifelike rule)

@@ -20,7 +20,7 @@
         #:origin-px Posn)  
       (Renderer Posn O S))))
 (define (make-2d-renderer color-map 
-  #:cell-width-px [cell-width-px 30] 
+  #:cell-width-px [cell-width-px 25] 
   #:origin-px [origin-px (Posn 0 0)] )
 
   (define BORDER-COLOR BLACK)

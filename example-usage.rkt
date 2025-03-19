@@ -16,8 +16,8 @@
 
 (define conways : (Rule Posn Posn AliveOrDead)
     (lifelike 
-        [('dead -> 'alive) 3 in 'alive]
-        [('alive -> 'alive) (2 3) in 'alive]))
+        [born 3 in 'alive]
+        [survive (2 3) in 'alive]))
         
 (define world : (World Posn Posn AliveOrDead) (random-world 50 50 ALIVE-OR-DEAD-STATES))
 (define renderer : (Renderer Posn Posn AliveOrDead) (make-2d-renderer colormap-alive-or-dead))
@@ -51,7 +51,8 @@
 
 <life-clause> ::= [<life-trans> <life-cond>]
 
-<life-trans> ::= (<alive-or-dead> -> <alive-or-dead>)
+<life-trans> ::= born
+               | survive
 
 <life-cond> ::= <number> in <alive-or-dead>
               | (<number> <number> ...) in <alive-or-dead>
