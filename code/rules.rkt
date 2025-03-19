@@ -1,9 +1,31 @@
 #lang typed/racket
 (require (for-syntax racket/syntax syntax/parse))
-(require "types.rkt" "library/rule.rkt" "library/topologies.rkt" "library/neighborhoods.rkt")
+(require "types.rkt" "library/topologies.rkt" "library/neighborhoods.rkt")
+(module+ test (require syntax/macro-testing typed/rackunit "examples.rkt"))
+
+;; Gets the states occurring in a given neighborhood
+;; TODO Convert to a multiset
+(: get-neighbors : (All (C O S) (C (StateMap C S) (Topology C O) (Neighborhood O) -> (Listof S))))
+(define (get-neighbors cell state-map topology neighborhood)
+  (foldr
+   (lambda ([cur : (Union C Void)] [acc : (Listof S)])
+     (if (or (void? cur) (not (hash-has-key? state-map cur)))
+         acc
+         (cons (hash-ref state-map cur) acc)))
+   (list)
+   (set-map neighborhood
+            (lambda ([offset : O]) (topology cell offset)))))
 (module+ test
-(require syntax/macro-testing)
-(require typed/rackunit))
+  (check-equal? (get-neighbors (Posn 1 1) STATEMAP-3x3-LIVE-CROSS cartesian-topology (moore-neighborhood)) 4))
+
+;; Checks if the number of neighbors in the specified state is one of the provided counts.
+(: has-neighbors-in-state? : (All (S) (-> S (Listof S) (Listof Nonnegative-Integer) Boolean)))
+(define (has-neighbors-in-state? state neighbors counts)
+  (let ([found-count
+         (count
+          (lambda ([neighbor : S]) (equal? neighbor state))
+          neighbors)])
+    (ormap (lambda ([c : Nonnegative-Integer]) (= c found-count)) counts)))
 
 (define-syntax (parse-condition stx)
   (syntax-parse stx
@@ -22,7 +44,6 @@
       
     [(_ _ state-type:id _ ((~datum default) out-state:expr)) 
       #'(let ([state-name : state-type out-state]) state-name)]))
-
 
 (define-syntax (rule stx)
   (syntax-parse stx
@@ -88,4 +109,4 @@
     [('alive -> 'alive) (2 3) in 'alive]
     [default 'dead]))
 
-(provide conways rule)
+(provide lifelike rule)

@@ -1,48 +1,97 @@
 #lang typed/racket
 
-;; Example of Conway's Game of Life
+;;; Example of Conway's Game of Life
 
 
 (require 
     "code/main.rkt"
     "code/types.rkt"
-    "code/macros.rkt"
+    "code/rules.rkt"
     "code/renderer.rkt"
     "code/library/colormaps.rkt"
     "code/library/topologies.rkt"
     "code/library/neighborhoods.rkt"
-    (for-syntax syntax/parse))
+    "code/library/statemaps.rkt"
+    (for-syntax syntax/parse syntax/macro-testing))
 
-(define-syntax (run-macro stx)
-    (syntax-parse stx 
-        [(_ type-world 
-            world:expr rule:expr renderer:expr)
-            (println "phase 1")
-            (define foo #'(begin 
-                (println "hello world")
-                (define-values (cell-type offset-type state-type) (apply values type-world))
-                (define ann-world : (World cell-type offset-type state-type) world) 
-                (define ann-rule : (Rule cell-type offset-type state-type) rule) 
-                (define ann-renderer : (Renderer cell-type offset-type state-type) renderer)
-            (run ann-world ann-rule ann-renderer)))
-            (println (syntax->datum foo))
-            foo]))
+#|
+`lifelike` macro
 
-(define renderer : (Renderer Posn Posn AliveOrDead) (make-2d-renderer colormap-alive-or-dead))
-(define states : (Listof AliveOrDead) (list 'dead 'alive))
-(define world : (World Posn Posn AliveOrDead) (random-world 50 50 states))
+<lifelike> ::= (lifelike <life-clause> ...)
 
-(define Lifelike '(Posn Posn AliveOrDead))
+<life-clause> ::= [<life-trans> <life-cond>]
 
+<life-trans> ::= (<alive-or-dead> -> <alive-or-dead>)
 
-(define my-conways : (Rule Posn Posn AliveOrDead)
-  (rule 
+<life-cond> ::= <number> in <alive-or-dead>
+              | (<number> <number> ...) in <alive-or-dead>
+
+<alive-or-dead> ::= 'alive
+                  | 'dead
+|#
+
+#|
+`rule` macro grammar
+<rule> ::= 
+    (rule 
+        #:state-type <type>
+        #:cell-type <type>
+        #:offset-type <type>
+        #:neighborhood <expr>
+        <clauses>
+    )
+
+<clauses> ::= <clause> ... <default>
+
+<default> ::= [default <expr>]
+
+<clause> ::= [<transition> <condition>]
+
+<transition> ::= (<expr> -> <expr>)
+
+<condition> ::= <number> in <expr>
+             | (<number> <number> ...) in <expr>
+
+|#
+
+#;(rule 
     #:state-type AliveOrDead
     #:cell-type Posn
     #:offset-type Posn
     #:neighborhood (moore-neighborhood)
     [('dead -> 'alive) 3 in 'alive]
     [('alive -> 'alive) (2 3) in 'alive]
-    [default 'dead]))
+    [default 'dead])
+; ->  
+#;(lambda  ([state-map : (StateMap Posn AliveOrDead)]
+            [topology : (Topology AliveOrDead Posn)])
+        (hash-map/copy state-map 
+        (lambda ([cell : Posn]
+                [in-state : AliveOrDead])
+            (values cell
+                (let ([neighbors : (Listof AliveOrDead) (get-neighbors cell state-map topology neighborhood)])
+                    (let ([state-name : AliveOrDead 'alive]) ; for type checking, even if shortcircuiting
+                            (if 
+                                (and ((inst has-neighbors-in-state? AliveOrDead) state-name neighbors (list count ...)) (equal? state-name in-state))
+                                state-name 
+                                (parse-clauses neighbors state-type state clauses ...)))
+                    (let ([state-name :  AliveOrDead 'dead]) state-name))))))
 
-(run-macro (Posn Posn AliveOrDead) world my-conways renderer)
+(define world : (World Posn Posn AliveOrDead) (random-world 50 50 ALIVE-OR-DEAD-STATES))
+(define renderer : (Renderer Posn Posn AliveOrDead) (make-2d-renderer colormap-alive-or-dead))
+(define conways : (Rule Posn Posn AliveOrDead)
+    (rule 
+        #:state-type AliveOrDead
+        #:cell-type Posn
+        #:offset-type Posn
+        #:neighborhood (moore-neighborhood)
+        [('dead -> 'alive) 3 in 'alive]
+        [('alive -> 'alive) (2 3) in 'alive]
+        [default 'dead])
+  #;(lifelike 
+    [('dead -> 'alive) 3 in 'alive]
+    [('alive -> 'alive) (2 3) in 'alive]))
+
+(run world conways renderer)
+
+

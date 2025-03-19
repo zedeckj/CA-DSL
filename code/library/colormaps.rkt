@@ -36,6 +36,8 @@
         (helper state states COLOR_LIST)
         (error "number of states exceeds number of predefined default colors"))))
 
+;; TODO: Instead of taking a minimum and a maximum Integer values, 
+;; make-grayscale-colormap can take a list of states of any type and map them to greyscale
 (: make-grayscale-colormap : (Integer Integer -> (ColorMap Integer)))
 (define (make-grayscale-colormap minimum maximum)
   (lambda ([state : Integer])

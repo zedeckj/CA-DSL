@@ -27,13 +27,6 @@
     (nest (topology cell offset) modifiers)))
             
 (: make-finite-cartesian-topology : (Positive-Integer Positive-Integer -> (Topology Posn Posn)))
-#|
-out = topology(cell)
-if something(out):
-    out
-else:
-    void
-|#
 (define (make-finite-cartesian-topology max-x max-y)
     (truncate-topology cartesian-topology 
         (lambda (_ __ [new-pos : Posn]) (in-cartesian-region new-pos (Posn max-x max-y)))))
@@ -94,8 +87,6 @@ else:
     (init-2d-world max-x max-y random-state))
 
 ;(: generate-random : )
-
-
 
 
 (provide (all-defined-out))
