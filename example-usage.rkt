@@ -13,7 +13,7 @@
     "code/library/statemaps.rkt"
     (for-syntax syntax/parse syntax/macro-testing))
 
-
+;; In CA, this is often expressed as "B3/S23"
 (define conways : (Rule Posn Posn AliveOrDead)
     (lifelike 
         [born 3 in 'alive]
