@@ -3,7 +3,7 @@
 (require "../types.rkt" "../utils.rkt")
 (module+ test (require typed/rackunit))
 
-(define ALIVE-OR-DEAD-STATES : (Listof AliveOrDead) (list 'dead))
+(define ALIVE-OR-DEAD-STATES : (Listof AliveOrDead) (list 'dead 'alive))
 
 ;; Utility constructor for a simple rectangular grids. Accepts a list of rows going from top to bottom, where each row is a list of states going from left to right. Ragged grids are ok. 
 (: make-statemap-2d : (All (S) (-> (Listof S) * (StateMap Posn S))))

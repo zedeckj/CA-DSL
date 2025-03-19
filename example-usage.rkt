@@ -88,6 +88,7 @@
         [('dead -> 'alive) 3 in 'alive]
         [('alive -> 'alive) (2 3) in 'alive]
         [default 'dead])
+        
   #;(lifelike 
     [('dead -> 'alive) 3 in 'alive]
     [('alive -> 'alive) (2 3) in 'alive]))

@@ -61,7 +61,7 @@
     (big-bang world : (World C O S)
         (name "CA Sim")
         [to-draw renderer WINDOW-WIDTH WINDOW-HEIGHT]
-        [on-tick (lambda ([ws : (World C O S)]) ws #;(tick-rule ws rule)) 10]))
+        [on-tick (lambda ([ws : (World C O S)]) (tick-rule ws rule)) 1]))
 
 (provide run)
 
