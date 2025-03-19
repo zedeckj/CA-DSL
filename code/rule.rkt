@@ -45,6 +45,7 @@
     [(_ _ state-type:id _ ((~datum default) out-state:expr)) 
       #'(let ([state-name : state-type out-state]) state-name)]))
 
+;; Main macro for declaring a Rule for a cellular automata
 (define-syntax (rule stx)
   (syntax-parse stx
     [(_
@@ -63,6 +64,7 @@
                   (let ([neighbors : (Listof state-type) (get-neighbors cell state-map topology neighborhood)])
                     (parse-clauses neighbors state-type in-state clauses ...))))))]))
 
+;; Shorthand for making a rule with alive and dead states with a default state of dead and uses a moore neighborhood with cells and offsets represented as Posn
 (define-syntax (lifelike stx)
   (syntax-parse stx
     [(_ clauses:expr ...) 
@@ -72,41 +74,5 @@
     #:offset-type Posn 
     #:neighborhood (moore-neighborhood)
     clauses ... [default 'dead])]))
-
-
-#;(define (conway-rule state-map topology)
-    (mapper state-map
-        (lambda ([cell : Posn]
-                [in-state : AliveOrDead])
-            (let ([neighbors (get-neighbors cell state-map topology (moore-neighborhood))])
-                (match in-state
-                    ['alive (if (has-neighbors-in-state? 'alive neighbors '(2 3)) 'alive 'dead)]
-                    ['dead (if (has-neighbors-in-state? 'alive neighbors '(3))'alive 'dead)])))))
-
-
-#;(module+ test
-  #;(assert-typecheck-fail
-      (rule
-    #:state-type Integer
-    [(0 -> 'a) #f]
-    [(1 -> 1) #t]
-    [default 0]))
-    
-  (assert-typecheck-fail (let ([x : Integer 'a]) x)))
-  
-(define conways : (Rule Posn Posn AliveOrDead)
-  (lifelike
-    [('dead -> 'alive) 3 in 'alive]
-    [('alive -> 'alive) (2 3) in 'alive]))
-
-#;(define conways : (Rule Posn Posn AliveOrDead)
-  (rule 
-    #:state-type AliveOrDead
-    #:cell-type Posn
-    #:offset-type Posn
-    #:neighborhood (moore-neighborhood)
-    [('dead -> 'alive) 3 in 'alive]
-    [('alive -> 'alive) (2 3) in 'alive]
-    [default 'dead]))
 
 (provide lifelike rule)

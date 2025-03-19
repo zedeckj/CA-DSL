@@ -8,7 +8,7 @@
         "renderer.rkt" 
         "library/colormaps.rkt" 
         "library/topologies.rkt" 
-        "rules.rkt")
+        "rule.rkt")
 (module+ test (require rackunit))
 (require (rename-in typed/2htdp/universe [big-bang broken-big-bang]))
 ;; The typed/2htdp/universe package incompletely replicates big-bang syntax by excluding the optional width and height arguments in the `to-draw` clause. This macro imperfectly approximates having those optional arguments by drawing a transparent rectangle of the appropriate size behind whatever the provided to-draw function draws. In big-bang, the size of the window is determined by the size of the image provided at tick 0. 
@@ -50,6 +50,7 @@
             (world-topology world) 
             active-filter)))
 
+;; Opens a native window to visualize the cellular automata
 (: run : 
     (All (C O S) 
         (World C O S)

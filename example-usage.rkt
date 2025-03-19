@@ -2,17 +2,47 @@
 
 ;;; Example of Conway's Game of Life
 
-
 (require 
-    "code/main.rkt"
+    "code/run.rkt"
     "code/types.rkt"
-    "code/rules.rkt"
+    "code/rule.rkt"
     "code/renderer.rkt"
     "code/library/colormaps.rkt"
     "code/library/topologies.rkt"
     "code/library/neighborhoods.rkt"
     "code/library/statemaps.rkt"
     (for-syntax syntax/parse syntax/macro-testing))
+
+
+(define conways : (Rule Posn Posn AliveOrDead)
+    (lifelike 
+        [('dead -> 'alive) 3 in 'alive]
+        [('alive -> 'alive) (2 3) in 'alive]))
+        
+(define world : (World Posn Posn AliveOrDead) (random-world 50 50 ALIVE-OR-DEAD-STATES))
+(define renderer : (Renderer Posn Posn AliveOrDead) (make-2d-renderer colormap-alive-or-dead))
+(run world conways renderer)
+
+
+; expansion of lifelike:
+#;(rule 
+    #:state-type AliveOrDead
+    #:cell-type Posn
+    #:offset-type Posn
+    #:neighborhood (moore-neighborhood)
+    [('dead -> 'alive) 3 in 'alive]
+    [('alive -> 'alive) (2 3) in 'alive]
+    [default 'dead])
+
+; rule roughly expands to 
+#;(define (conway-rule state-map topology)
+    (mapper state-map
+        (lambda ([cell : Posn]
+                [in-state : AliveOrDead])
+            (let ([neighbors (get-neighbors cell state-map topology (moore-neighborhood))])
+                (match in-state
+                    ['alive (if (has-neighbors-in-state? 'alive neighbors '(2 3)) 'alive 'dead)]
+                    ['dead (if (has-neighbors-in-state? 'alive neighbors '(3))'alive 'dead)])))))
 
 #|
 `lifelike` macro
@@ -53,46 +83,3 @@
              | (<number> <number> ...) in <expr>
 
 |#
-
-#;(rule 
-    #:state-type AliveOrDead
-    #:cell-type Posn
-    #:offset-type Posn
-    #:neighborhood (moore-neighborhood)
-    [('dead -> 'alive) 3 in 'alive]
-    [('alive -> 'alive) (2 3) in 'alive]
-    [default 'dead])
-; ->  
-#;(lambda  ([state-map : (StateMap Posn AliveOrDead)]
-            [topology : (Topology AliveOrDead Posn)])
-        (hash-map/copy state-map 
-        (lambda ([cell : Posn]
-                [in-state : AliveOrDead])
-            (values cell
-                (let ([neighbors : (Listof AliveOrDead) (get-neighbors cell state-map topology neighborhood)])
-                    (let ([state-name : AliveOrDead 'alive]) ; for type checking, even if shortcircuiting
-                            (if 
-                                (and ((inst has-neighbors-in-state? AliveOrDead) state-name neighbors (list count ...)) (equal? state-name in-state))
-                                state-name 
-                                (parse-clauses neighbors state-type state clauses ...)))
-                    (let ([state-name :  AliveOrDead 'dead]) state-name))))))
-
-(define world : (World Posn Posn AliveOrDead) (random-world 50 50 ALIVE-OR-DEAD-STATES))
-(define renderer : (Renderer Posn Posn AliveOrDead) (make-2d-renderer colormap-alive-or-dead))
-(define conways : (Rule Posn Posn AliveOrDead)
-    (rule 
-        #:state-type AliveOrDead
-        #:cell-type Posn
-        #:offset-type Posn
-        #:neighborhood (moore-neighborhood)
-        [('dead -> 'alive) 3 in 'alive]
-        [('alive -> 'alive) (2 3) in 'alive]
-        [default 'dead])
-        
-  #;(lifelike 
-    [('dead -> 'alive) 3 in 'alive]
-    [('alive -> 'alive) (2 3) in 'alive]))
-
-(run world conways renderer)
-
-
