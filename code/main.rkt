@@ -4,7 +4,14 @@
 
 (require (for-syntax syntax/parse) (for-syntax racket/syntax))
 (require typed/2htdp/image)
-(require "types.rkt" "utils.rkt" "renderer.rkt" "library/colormaps.rkt" "library/topologies.rkt" "library/rule.rkt" "library/macros.rkt")
+(require "types.rkt" 
+        "utils.rkt" 
+        "renderer.rkt" 
+        "library/colormaps.rkt" 
+        "library/topologies.rkt" 
+        "library/rule.rkt" 
+        "macros.rkt")
+        
 (module+ test (require rackunit))
 (require (rename-in typed/2htdp/universe [big-bang broken-big-bang]))
 ;; The typed/2htdp/universe package incompletely replicates big-bang syntax by excluding the optional width and height arguments in the `to-draw` clause. This macro imperfectly approximates having those optional arguments by drawing a transparent rectangle of the appropriate size behind whatever the provided to-draw function draws. In big-bang, the size of the window is determined by the size of the image provided at tick 0. 
@@ -54,20 +61,36 @@
         -> 
         (World C O S)))
 (define (run world rule renderer)
-    (big-bang world :(World C O S)
+    (big-bang world : (World C O S)
         (name "CA Sim")
-        [to-draw renderer DISPLAY-WIDTH DISPLAY-HEIGHT]
+        [to-draw renderer WINDOW-WIDTH WINDOW-HEIGHT]
         [on-tick (lambda ([ws : (World C O S)]) (tick-rule ws rule)) 1]))
 
+
+
+(define-syntax (run-macro stx)
+    (syntax-parse stx 
+        [(_ (cell-type:id offset-type:id state-type:id) 
+            world:expr rule:expr renderer:expr)
+        #'(run 
+            (cast world (World cell-type offset-type state-type)) 
+            (cast rule (Rule cell-type offset-type state-type))
+            (cast renderer (Renderer cell-type offset-type state-type)))]))
+
+         #;#'(begin 
+                (define ann-world : (World cell-type offset-type state-type) world) 
+                (define ann-rule : (Rule cell-type offset-type state-type) rule) 
+                (define ann-renderer : (Renderer cell-type offset-type state-type) renderer)
+            #;(run ann-world ann-rule ann-renderer))
 
 (provide run)
 
 
-(define renderer : (Renderer Posn Posn AliveOrDead) (make-2d-renderer colormap-alive-or-dead))
-(define states : (Listof AliveOrDead) (list 'dead 'alive))
-(define world : (World Posn Posn AliveOrDead) (random-world 50 50 states))
-(run world conways renderer)
 
+#;(define renderer : (Renderer cell-type offset-type state-type) (make-2d-renderer colormap-alive-or-dead))
+#;(define states : (Listof AliveOrDead) (list 'dead 'alive))
+#;(define world : (World cell-type offset-type state-type) (random-world 50 50 states))
+#;(run world conways renderer)
 
 
 

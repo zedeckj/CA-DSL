@@ -8,8 +8,8 @@
 (require "types.rkt" "library/colormaps.rkt")
 
 ;; Defines the dimensions of the big bang window
-(define DISPLAY-WIDTH 1000)
-(define DISPLAY-HEIGHT 1000)
+(define WINDOW-WIDTH 1000)
+(define WINDOW-HEIGHT 1000)
 
 ;; Creates a simple 2d renderer which can translate a world where cells are represented by Posns to a graphical representation.
 ;; TODO Future improvements: Show a visual indication for when cells have non-standard neighbors and when cells are frozen.
@@ -17,9 +17,7 @@
   (All (O S) 
     (->* ((ColorMap S)) 
       (#:cell-width-px Positive-Integer 
-        #:origin-px Posn 
-        #:width-px Positive-Integer 
-        #:height-px Positive-Integer)  
+        #:origin-px Posn)  
       (Renderer Posn O S))))
 (define (make-2d-renderer color-map 
   #:cell-width-px [cell-width-px 30] 
@@ -37,8 +35,8 @@
     (cast (ceiling (/ (+ origin-px-component disp-len) cell-width-px)) Integer))
   (define first-row-idx (first-idx (posn-y origin-px)))
   (define first-col-idx (first-idx (posn-x origin-px)))
-  (define last-col-idx (last-idx (posn-x origin-px) MAIN-DISPLAY-WIDTH))
-  (define last-row-idx (last-idx (posn-y origin-px) MAIN-DISPLAY-HEIGHT))
+  (define last-col-idx (last-idx (posn-x origin-px) WINDOW-WIDTH))
+  (define last-row-idx (last-idx (posn-y origin-px) WINDOW-HEIGHT))
   (define crop-left (- (posn-x origin-px) (* cell-width-px first-col-idx)))
   (define crop-top (- (posn-y origin-px) (* cell-width-px first-col-idx)))
 
@@ -55,8 +53,9 @@
         (square cell-width-px "solid" color)))
 
   ;; Function that gets returned
-  ;(: renderer : (All (O) (Renderer Posn O S)))
-  (lambda ([world : (World Posn O S)])
+  (: renderer : (All (O) (Renderer Posn O S)))
+  (define (renderer world)
+  ;(lambda ([world : (World Posn O S)])
   
     (: draw-cell : (Posn -> Image))
     (define (draw-cell posn)
@@ -72,9 +71,9 @@
             (lambda ([cell-x : Integer]) (Posn cell-x cell-y)) 
             (range first-col-idx (sub1 last-col-idx))))))
 
-    (crop crop-left crop-top DISPLAY-WIDTH DISPLAY-HEIGHT
+    (crop crop-left crop-top WINDOW-WIDTH WINDOW-HEIGHT
           (foldr above (draw-row last-row-idx)
-                 (map draw-row (range first-row-idx (sub1 last-row-idx)))))))
+                 (map draw-row (range first-row-idx (sub1 last-row-idx)))))) renderer)
 
 
 (module+ test
@@ -91,4 +90,4 @@
   (check-equal? (render-dummy-with-offset (Posn 1 0)) dummy-world-no-left-border)
   )
 
-(provide make-2d-renderer)
+(provide make-2d-renderer WINDOW-WIDTH WINDOW-HEIGHT)

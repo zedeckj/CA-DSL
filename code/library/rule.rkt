@@ -1,5 +1,5 @@
 #lang typed/racket
-(require "../types.rkt" "topologies.rkt")
+(require "../types.rkt" "topologies.rkt" "neighborhoods.rkt")
 (module+ test (require typed/rackunit) (require "../examples.rkt"))
 
 ;; Gets the states occurring in a given neighborhood
@@ -14,8 +14,11 @@
    (list)
    (set-map neighborhood
             (lambda ([offset : O]) (topology cell offset)))))
+
+
 (module+ test
   (check-equal? (get-neighbors (Posn 1 1) STATEMAP-3x3-LIVE-CROSS cartesian-topology (moore-neighborhood)) 4))
+
 
 ;; Checks if the number of neighbors in the specified state is one of the provided counts.
 (: has-neighbors-in-state? : (All (S) (-> S (Listof S) (Listof Nonnegative-Integer) Boolean)))

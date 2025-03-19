@@ -1,6 +1,6 @@
 #lang typed/racket
 (require (for-syntax racket/syntax syntax/parse))
-(require "../types.rkt" "rule.rkt" "topologies.rkt")
+(require "types.rkt" "library/rule.rkt" "library/topologies.rkt" "library/neighborhoods.rkt")
 (module+ test
 (require syntax/macro-testing)
 (require typed/rackunit))
@@ -42,6 +42,17 @@
                   (let ([neighbors : (Listof state-type) (get-neighbors cell state-map topology neighborhood)])
                     (parse-clauses neighbors state-type in-state clauses ...))))))]))
 
+(define-syntax (lifelike stx)
+  (syntax-parse stx
+    [(_ clauses:expr ...) 
+    #'(rule 
+    #:state-type AliveOrDead
+    #:cell-type Posn
+    #:offset-type Posn 
+    #:neighborhood (moore-neighborhood)
+    clauses ... [default 'dead])]))
+
+
 #;(define (conway-rule state-map topology)
     (mapper state-map
         (lambda ([cell : Posn]
@@ -53,19 +64,21 @@
 
 
 #;(module+ test
-  (check-exn #rx"type mismatch" 
-    (lambda () (convert-compile-time-error (phase1-eval
+  #;(assert-typecheck-fail
       (rule
     #:state-type Integer
     [(0 -> 'a) #f]
     [(1 -> 1) #t]
     [default 0]))
-    )))
     
-    (check-exn #rx"type" (lambda () (convert-compile-time-error (phase1-eval (let ([x : Integer 'a]) x))))))
+  (assert-typecheck-fail (let ([x : Integer 'a]) x)))
   
-
 (define conways : (Rule Posn Posn AliveOrDead)
+  (lifelike
+    [('dead -> 'alive) 3 in 'alive]
+    [('alive -> 'alive) (2 3) in 'alive]))
+
+#;(define conways : (Rule Posn Posn AliveOrDead)
   (rule 
     #:state-type AliveOrDead
     #:cell-type Posn
@@ -75,15 +88,4 @@
     [('alive -> 'alive) (2 3) in 'alive]
     [default 'dead]))
 
-#;(define-rule conways 
-    (: Posn Posn AliveOrDead :)
-    [('dead -> 'alive) 3 in 'alive]
-    [('alive -> 'alive) (2 3) in 'alive]
-    [default 'dead])
-
-#;(define conways
-    (lifelike
-    [('dead -> 'alive) 3 in 'alive]
-    [('alive -> 'alive) (2 3) in 'alive]))
-
-(provide conways)
+(provide conways rule)
