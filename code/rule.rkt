@@ -36,14 +36,18 @@
   (syntax-parse stx
     [(_ neighbors:id state-type:id state:id 
       ((in-state:expr (~datum ->) out-state:expr) condition:expr ...+) clauses ...+)
-      #'(let ([state-name : state-type out-state]) ; for type checking, even if shortcircuiting
-      (if 
-        (and (parse-condition neighbors condition ...) (equal? in-state state))
-        state-name 
-        (parse-clauses neighbors state-type state clauses ...)))]
+      #'(begin
+          (ann out-state state-type)
+          (ann in-state state-type)
+          (if 
+            (and (parse-condition neighbors condition ...) (equal? in-state state))
+            out-state 
+            (parse-clauses neighbors state-type state clauses ...)))]
       
     [(_ _ state-type:id _ ((~datum default) out-state:expr)) 
-      #'(let ([state-name : state-type out-state]) state-name)]))
+      #'(begin 
+        (ann out-state state-type)
+        out-state)]))
 
 ;; Main macro for declaring a Rule for a cellular automata
 (define-syntax (rule stx)
@@ -54,7 +58,15 @@
       #:offset-type offset-type:id
       #:neighborhood neighborhood:expr
       clauses:expr ...)
-        #'(lambda
+        #'(lambda 
+                ([state-map : (StateMap cell-type state-type)]
+                 [topology : (Topology cell-type offset-type)]
+                 [cell : cell-type])
+              (let ([in-state : state-type (hash-ref state-map cell)]
+                    [neighbors : (Listof state-type) (get-neighbors cell state-map topology neighborhood)])
+                    (parse-clauses neighbors state-type in-state clauses ...)))]))
+
+        #;(lambda
                 ([state-map : (StateMap cell-type state-type)]
                  [topology : (Topology cell-type offset-type)])
             (hash-map/copy state-map 
@@ -62,7 +74,7 @@
                        [in-state : state-type])
                 (values cell
                   (let ([neighbors : (Listof state-type) (get-neighbors cell state-map topology neighborhood)])
-                    (parse-clauses neighbors state-type in-state clauses ...))))))]))
+                    (parse-clauses neighbors state-type in-state clauses ...))))))
 
 ;; Shorthand for making a rule with alive and dead states with a default state of dead and uses a moore neighborhood with cells and offsets represented as Posn
 (define-syntax (lifelike stx)

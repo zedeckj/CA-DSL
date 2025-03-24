@@ -60,11 +60,13 @@
 
 ( : init-2d-world : (All (S) Positive-Integer Positive-Integer (Posn -> S) -> (World Posn Posn S)))
 (define (init-2d-world max-x max-y state-initializer)
+    (define ht : (StateMap Posn S) (make-hash))
+    (for* 
+        ([x (range max-x)] 
+            [y (range max-y)])
+        (hash-set! ht (Posn x y) (state-initializer (Posn x y))))
     (make-world 
-        (for*/hash : (StateMap Posn S) 
-            ([x (range max-x)] 
-             [y (range max-y)])
-            (values (Posn x y) (state-initializer (Posn x y))))
+        ht
         (make-finite-cartesian-topology max-x max-y)
         (lambda ([_ : Posn]) #t)))
 

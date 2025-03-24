@@ -20,7 +20,8 @@
             (hash-set! ret (car v) (cdr v))))
     (for ([v (enumerate rows)])
         (make-row-of-states v))
-    (hash-map/copy ret (lambda ([k : Posn] [v : S]) (values k v)) #:kind 'immutable))
+    (ann ret (Mutable-HashTable Posn S))
+    ret)
 (module+ test
     (check-equal? (make-statemap-2d '(0-0 1-0) '(0-1) '(0-2 1-2 2-2))
         (hash 

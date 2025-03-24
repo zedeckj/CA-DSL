@@ -31,14 +31,14 @@
 
 ;; Applies the given ActiveFilter to the provided StateMap, by setting cells that are inactive
 ;; to their previous state
-(: enforce-active-filter : (All (C S) (StateMap C S) (StateMap C S) (ActiveFilter C) -> (StateMap C S)))
-(define (enforce-active-filter old-state-map new-state-map active-filter)
-    (hash-map/copy new-state-map 
-            (lambda ([cell : C] [state : S]) 
-                (values cell 
-                        (if (active-filter cell) 
-                            state 
-                            (hash-ref old-state-map cell))))))
+; (: enforce-active-filter : (All (C S) (StateMap C S) (StateMap C S) (ActiveFilter C) -> (StateMap C S)))
+; (define (enforce-active-filter old-state-map new-state-map active-filter)
+;     (hash-map/copy new-state-map 
+;             (lambda ([cell : C] [state : S]) 
+;                 (values cell 
+;                         (if (active-filter cell) 
+;                             state 
+;                             (hash-ref old-state-map cell))))))
 
 ;; Applies the given rule to the provided world
 (: tick-rule : (All (C O S) (World C O S) (Rule C O S) -> (World C O S)))
@@ -46,9 +46,16 @@
     (let ([active-filter (world-active-filter world)]
           [state-map (world-state-map world)]
           [topology (world-topology world)])
-    (World (enforce-active-filter state-map (rule state-map topology) active-filter) 
+        (define old-state-map (hash-copy state-map))
+        (hash-for-each state-map 
+            (lambda ([cell : C] _) 
+                (when (active-filter cell) 
+                    (hash-set! state-map cell (rule old-state-map topology cell)))))
+        world))
+
+    #;(World (enforce-active-filter state-map (rule state-map topology) active-filter) 
             (world-topology world) 
-            active-filter)))
+            active-filter)
 
 ;; Opens a native window to visualize the cellular automata
 (: run : 
@@ -62,7 +69,7 @@
     (big-bang world : (World C O S)
         (name "CA Sim")
         [to-draw renderer WINDOW-WIDTH WINDOW-HEIGHT]
-        [on-tick (lambda ([ws : (World C O S)]) (tick-rule ws rule)) 1]))
+        [on-tick (lambda ([ws : (World C O S)]) (tick-rule ws rule)) 0.1]))
 
 (provide run)
 

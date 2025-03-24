@@ -18,7 +18,7 @@ Meaning for parametric type variables:
 (define-type AliveOrDead (U 'alive 'dead))
 
 ;;  Represents a data structure for storing the states of cells in the CA
-(define-type (StateMap C S) (HashTable C S))
+(define-type (StateMap C S) (Mutable-HashTable C S))
 
 ;; Represents a transition from cell and an offset to a new cell.
 (define-type (Topology C O) (C O -> (Union C Void)))
@@ -29,8 +29,11 @@ Meaning for parametric type variables:
 ;; Represents what color should be used to represent a state
 (define-type (ColorMap S) (S -> Color))
     
-;; A function which, when given a World, creates a new StateMap representing a time stepped instance of the World's StateMap
-(define-type (Rule C O S) ((StateMap C S) (Topology C O) -> (StateMap C S)))
+;; A function which, when given a StateMap and Topology, creates a new StateMap representing a time stepped instance of the World's StateMap
+#; (define-type (Rule C O S) ((StateMap C S) (Topology C O) -> (StateMap C S)))
+
+;; A function which, when given a StateMap, Topology, and Cell, returns the new State for that Cell
+(define-type (Rule C O S) ((StateMap C S) (Topology C O) C -> S))
 
 (define-type (Neighborhood O) (Setof O))
 
