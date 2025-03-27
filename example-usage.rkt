@@ -20,7 +20,7 @@
     #:cell-type Posn
     #:offset-type Posn
     #:neighborhood (moore-neighborhood)
-    [('dead -> 'alive) 3 in 'alive]
+    [('dead -> 'alive) 'a in 'alive]
     [('alive -> 'alive) (2 3) in 'alive]
     [default 'dead])
     #;(lifelike 

@@ -27,24 +27,52 @@
           neighbors)])
     (ormap (lambda ([c : Nonnegative-Integer]) (= c found-count)) counts)))
 
+(define-syntax (parse-count stx)
+  (syntax-parse stx
+    [(_ neighbors:expr neighborhood-len count:expr)
+      #'(if 
+          (> count neighborhood-len) 
+          (raise-syntax-error (format "Count must not exceed size of neighborhood (~a)" neighborhood-len) count)
+          count)]
+    ))
+
+;; Processes the neighbors 
+(define-syntax (parse-counts stx)
+  
+  (syntax-parse stx
+    [(_ neighbors:expr _ (~datum all))
+    #'(length neighbors)]
+    [(_ neighbors:expr neighborhood-len (count:expr ... ))
+      #'(list (parse-counts neighbors neigborhood-len count) ...)]
+    [(_ args:expr ...) #'(pares-count args ...)]))
+
+(module+ test
+  (check-equal? (phase1-eval (parse-c)))
+  )
+
 (define-syntax (parse-condition stx)
   (syntax-parse stx
-    [(_ neighbors:expr (count:expr ...+) (~datum in) state:expr) #'((inst has-neighbors-in-state? AliveOrDead) state neighbors (list count ...))]
-    [(_ neighbors:expr count:expr (~datum in) state:expr) #'((inst has-neighbors-in-state? AliveOrDead) state neighbors (list count))]))
+    [(_ neighbors:expr neighborhood-len (count:expr ...+) (~datum in) state:expr) 
+    #'(let 
+      ([count-list : (Listof Nonnegative-Integer) (list count ...)])
+        (has-neighbors-in-state? state neighbors count-list))]
+    [(_ neighbors:expr neighborhood-len count:expr (~datum in) state:expr) 
+    #'(let ([count-var : Nonnegative-Integer count])
+    (has-neighbors-in-state? state neighbors (list count-var)))]))
 
 (define-syntax (parse-clauses stx)
   (syntax-parse stx
-    [(_ neighbors:id state-type:id state:id 
+    [(_ neighbors:id neighborhood-len:expr state-type:id state:id 
       ((in-state:expr (~datum ->) out-state:expr) condition:expr ...+) clauses ...+)
       #'(begin
           (ann out-state state-type)
           (ann in-state state-type)
           (if 
-            (and (parse-condition neighbors condition ...) (equal? in-state state))
+            (and (parse-condition neighbor neighborhood-len condition ...) (equal? in-state state))
             out-state 
-            (parse-clauses neighbors state-type state clauses ...)))]
+            (parse-clauses neighbors neighborhood-len state-type state clauses ...)))]
       
-    [(_ _ state-type:id _ ((~datum default) out-state:expr)) 
+    [(_ _ _ state-type:id _ ((~datum default) out-state:expr)) 
       #'(begin 
         (ann out-state state-type)
         out-state)]))
@@ -64,17 +92,7 @@
                  [cell : cell-type])
               (let ([in-state : state-type (hash-ref state-map cell)]
                     [neighbors : (Listof state-type) (get-neighbors cell state-map topology neighborhood)])
-                    (parse-clauses neighbors state-type in-state clauses ...)))]))
-
-        #;(lambda
-                ([state-map : (StateMap cell-type state-type)]
-                 [topology : (Topology cell-type offset-type)])
-            (hash-map/copy state-map 
-              (lambda ([cell : cell-type]
-                       [in-state : state-type])
-                (values cell
-                  (let ([neighbors : (Listof state-type) (get-neighbors cell state-map topology neighborhood)])
-                    (parse-clauses neighbors state-type in-state clauses ...))))))
+                    (parse-clauses neighbors (length neighborhood) state-type in-state clauses ...)))])); Pass down the length of the full neighborhood to enable runtime checks of conditions which specify a number of cells that doesn't make sense
 
 ;; Shorthand for making a rule with alive and dead states with a default state of dead and uses a moore neighborhood with cells and offsets represented as Posn
 (define-syntax (lifelike stx)

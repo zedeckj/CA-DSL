@@ -118,16 +118,24 @@ We'd like to add syntactic sugar and built in functions to make defintions like 
 <BRANCH> ::= [<TRANSITION> <COND>]
         | [<TRANSITION>]
         | [<STATE> <expr>]
+        | [default <expr>]
 
 
+(rule
+        [default (x) (+ x 1)]) // if even
 
 <TRANSITION> ::= (<STATE> -> <STATE>)
              | (* -> <STATE>)
+             | (<id>)
 
 <COND> ::= <expr>
-        | <exc?> <COUNTS> in <STATE>
-        | <EXC?> <COUNTS> from <INLINE-NEIGHBORHOOD> are <STATE>
+        | <EXC?> <COUNTS> in <STATE>
+        | <EXC?> <COUNTS> from <INLINE-NEIGHBORHOOD> are <STATE> 
         | <EXC?> <NEIGHBOR> is <STATE>
+        | <COND> and <COND>
+        | <COND> or <COND>
+        | not <COND>
+
 
 <COUNTS> ::= (<natural> <natural> ...)
          | <natural>
