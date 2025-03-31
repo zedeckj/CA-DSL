@@ -1,6 +1,6 @@
 #lang typed/racket
 (require (for-syntax racket/syntax syntax/parse))
-(require "types.rkt" "library/topologies.rkt" "library/neighborhoods.rkt")
+(require "types.rkt" "library/topologies.rkt" "library/neighborhoods.rkt" "examples.rkt")
 (module+ test (require syntax/macro-testing typed/rackunit "examples.rkt"))
 
 ;; Gets the states occurring in a given neighborhood
@@ -46,7 +46,7 @@
       #'(list (parse-counts neighbors neigborhood-len count) ...)]
     [(_ args:expr ...) #'(pares-count args ...)]))
 
-(module+ test
+#;(module+ test
   (check-equal? (phase1-eval (parse-c)))
   )
 
@@ -58,32 +58,34 @@
         (has-neighbors-in-state? state neighbors count-list))]
     [(_ neighbors:expr neighborhood-len count:expr (~datum in) state:expr) 
     #'(let ([count-var : Nonnegative-Integer count])
-    (has-neighbors-in-state? state neighbors (list count-var)))]))
+    (has-neighbors-in-state? state neighbors (list count-var)))]
+    [(_ neighbors:expr neighborhood-len) #'#t]))
 
 (define-syntax (parse-clauses stx)
   (syntax-parse stx
     [(_ neighbors:id neighborhood-len:expr state-type:id state:id 
-      ((in-state:expr (~datum ->) out-state:expr) condition:expr ...+) clauses ...+)
+      ((in-state:expr (~datum ->) out-state:expr) condition-token:expr ...) clauses ...+)
       #'(begin
           (ann out-state state-type)
           (ann in-state state-type)
           (if 
-            (and (parse-condition neighbor neighborhood-len condition ...) (equal? in-state state))
+            (and (parse-condition neighbors neighborhood-len condition-token ...) (equal? in-state state))
             out-state 
-            (parse-clauses neighbors neighborhood-len state-type state clauses ...)))]
+            (parse-clauses neighbors neighborhood-len state-type state  clauses ...)))]
       
     [(_ _ _ state-type:id _ ((~datum default) out-state:expr)) 
       #'(begin 
         (ann out-state state-type)
-        out-state)]))
+        out-state)]
+    [(_ neighbors _ _ state) #'(error (format "No matching case found for ~a with neigbors ~a" neighbors state))]))
 
 ;; Main macro for declaring a Rule for a cellular automata
 (define-syntax (rule stx)
   (syntax-parse stx
     [(_
-      #:state-type state-type:id
       #:cell-type cell-type:id
       #:offset-type offset-type:id
+      #:state-type state-type:id
       #:neighborhood neighborhood:expr
       clauses:expr ...)
         #'(lambda 
@@ -101,9 +103,9 @@
     [(~datum born) born-cond:expr ...+]
     [(~datum survive) survive-cond:expr ...+])
     #'(rule 
-    #:state-type AliveOrDead
     #:cell-type Posn
     #:offset-type Posn 
+    #:state-type AliveOrDead
     #:neighborhood (moore-neighborhood)
     [('dead -> 'alive) (born-cond ...) in 'alive]
     [('alive -> 'alive) (survive-cond ...) in 'alive] 

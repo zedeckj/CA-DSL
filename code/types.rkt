@@ -28,7 +28,7 @@ Meaning for parametric type variables:
 
 ;; Represents what color should be used to represent a state
 (define-type (ColorMap S) (S -> Color))
-    
+
 ;; A function which, when given a StateMap and Topology, creates a new StateMap representing a time stepped instance of the World's StateMap
 #; (define-type (Rule C O S) ((StateMap C S) (Topology C O) -> (StateMap C S)))
 
@@ -42,7 +42,13 @@ Meaning for parametric type variables:
     [topology : (Topology C O)] 
     [active-filter : (ActiveFilter C)]) #:type-name World)
 
+
+(define-type (2DWorld S) (World Posn Posn S))
+    
+
 (define-type (Renderer C O S) ((World C O S) -> Image))
+
+(define-type (2DRender S) (Renderer Posn Posn S))
 
 (define-type LifelikeRule (Rule Posn Posn AliveOrDead))
 (define-type LifelikeWorld (World Posn Posn AliveOrDead))

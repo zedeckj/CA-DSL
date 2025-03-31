@@ -29,7 +29,7 @@
     (: helper : (All (S) (S (Listof S) (Listof Color) -> Color)))
     (define (helper s states colors)
       (cond
-        [(empty? states) (error "invalid state")]
+        [(empty? states) (error "No color specified for state ~a" s)]
         [(equal? (first states) s) (first colors)]
         [else (helper s (rest states) (rest colors))]))
     (if (<= (length states) (length COLOR_LIST)) ;; TODO convert to contract

@@ -9,3 +9,5 @@ Rule Changes:
 - Now a function from World Cell -> State, called for each cell that is active in the state map
 - Can now mutate the current state map instead of creating a new state map
 - No need to post hoc enforce active filter, only call rule for cells that are active 
+
+
