@@ -15,6 +15,7 @@ Meaning for parametric type variables:
     S represents the type of the states. 
         Example: (U 'alive 'dead), Byte
 |#
+
 (define-type AliveOrDead (U 'alive 'dead))
 
 ;;  Represents a data structure for storing the states of cells in the CA
@@ -48,11 +49,11 @@ Meaning for parametric type variables:
 
 (define-type (Renderer C O S) ((World C O S) -> Image))
 
-(define-type (2DRender S) (Renderer Posn Posn S))
+(define-type (2DRenderer S) (Renderer Posn Posn S))
 
 (define-type LifelikeRule (Rule Posn Posn AliveOrDead))
 (define-type LifelikeWorld (World Posn Posn AliveOrDead))
 (define-type LifelikeRenderer (Renderer Posn Posn AliveOrDead))
 
 ; TODO Is there a provide-all-out for types?
-(provide StateMap Topology ActiveFilter ColorMap Rule Renderer AliveOrDead World (struct-out world) (struct-out posn) Neighborhood Posn LifelikeRule LifelikeWorld LifelikeRenderer)
+(provide StateMap Topology 2DRenderer 2DWorld ActiveFilter ColorMap Rule Renderer AliveOrDead World (struct-out world) (struct-out posn) Neighborhood Posn LifelikeRule LifelikeWorld LifelikeRenderer)

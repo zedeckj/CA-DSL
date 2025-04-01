@@ -1,10 +1,9 @@
 #lang typed/racket
-(require (for-syntax racket/syntax syntax/parse))
-(require "types.rkt" "library/topologies.rkt" "library/neighborhoods.rkt" "examples.rkt")
+(require "types.rkt" "library/topologies.rkt" "library/neighborhoods.rkt" "examples.rkt" racket/syntax syntax/parse
+         (for-syntax racket/syntax syntax/parse))
 (module+ test (require syntax/macro-testing typed/rackunit "examples.rkt"))
 
 ;; Gets the states occurring in a given neighborhood
-;; TODO Convert to a multiset
 (: get-neighbors : (All (C O S) (C (StateMap C S) (Topology C O) (Neighborhood O) -> (Listof S))))
 (define (get-neighbors cell state-map topology neighborhood)
   (foldr
@@ -15,8 +14,6 @@
    (list)
    (set-map neighborhood
             (lambda ([offset : O]) (topology cell offset)))))
-(module+ test
-  (check-equal? (get-neighbors (Posn 1 1) STATEMAP-3x3-LIVE-CROSS cartesian-topology (moore-neighborhood)) 4))
 
 ;; Checks if the number of neighbors in the specified state is one of the provided counts.
 (: has-neighbors-in-state? : (All (S) (-> S (Listof S) (Listof Nonnegative-Integer) Boolean)))
@@ -27,57 +24,86 @@
           neighbors)])
     (ormap (lambda ([c : Nonnegative-Integer]) (= c found-count)) counts)))
 
+(module+ test
+  (check-equal? (get-neighbors (Posn 1 1) STATEMAP-3x3-LIVE-CROSS cartesian-topology (moore-neighborhood)) 4))
+
 (define-syntax (parse-count stx)
   (syntax-parse stx
     [(_ neighbors:expr neighborhood-len count:expr)
-      #'(if 
-          (> count neighborhood-len) 
-          (raise-syntax-error (format "Count must not exceed size of neighborhood (~a)" neighborhood-len) count)
-          count)]
+     #'(if
+        (> count neighborhood-len)
+        (raise-syntax-error (format "Count must not exceed size of neighborhood (~a)" neighborhood-len) count)
+        count)]
     ))
 
-;; Processes the neighbors 
+;; Processes the neighbors
 (define-syntax (parse-counts stx)
-  
+
   (syntax-parse stx
     [(_ neighbors:expr _ (~datum all))
-    #'(length neighbors)]
+     #'(length neighbors)]
     [(_ neighbors:expr neighborhood-len (count:expr ... ))
-      #'(list (parse-counts neighbors neigborhood-len count) ...)]
+     #'(list (parse-counts neighbors neigborhood-len count) ...)]
     [(_ args:expr ...) #'(pares-count args ...)]))
 
 #;(module+ test
-  (check-equal? (phase1-eval (parse-c)))
-  )
+    (check-equal? (phase1-eval (parse-c)))
+    )
 
 (define-syntax (parse-condition stx)
   (syntax-parse stx
-    [(_ neighbors:expr neighborhood-len (count:expr ...+) (~datum in) state:expr) 
-    #'(let 
-      ([count-list : (Listof Nonnegative-Integer) (list count ...)])
-        (has-neighbors-in-state? state neighbors count-list))]
-    [(_ neighbors:expr neighborhood-len count:expr (~datum in) state:expr) 
-    #'(let ([count-var : Nonnegative-Integer count])
-    (has-neighbors-in-state? state neighbors (list count-var)))]
+    [(_ neighbors:expr neighborhood-len (count:expr ...+) (~datum in) state:expr)
+     #'(let
+           ([count-list : (Listof Nonnegative-Integer) (list count ...)])
+         (has-neighbors-in-state? state neighbors count-list))]
+    [(_ neighbors:expr neighborhood-len count:expr (~datum in) state:expr)
+     #'(let ([count-var : Nonnegative-Integer count])
+         (has-neighbors-in-state? state neighbors (list count-var)))]
     [(_ neighbors:expr neighborhood-len) #'#t]))
+
+
+(define-syntax (parse-transition stx)
+  (syntax-parse stx
+    [(_ ((~datum _) (~datum ->) out-state:expr))
+     #'(lambda (cur-state cond fallback) 
+         (if (cond) out-state (fallback cur-state)))]
+    [(_ (in-state (~datum ->) out-state))
+     #'(lambda (cur-state cond fallback)
+         (if (and (eq? cur-state in-state) (cond)) 
+            out-state 
+            (fallback cur-state)))]))
+
+;;(transition in-state other-condition fallback-callback)
+;;(lambda (in-state) (transition (in-state other-conditions fallback-callback))))
+
+;; Syntax -> Listof Syntax
+(define-for-syntax (deconstruct-transition stx)
+  (syntax-parse stx
+    [(in-state:expr (~datum ->) out-state:expr) (list stx)]
+    [(in-state:expr (~datum ->) out-state:expr more:expr ...+)
+     (append 
+      (deconstruct-transition #'(out-state more ...))
+      (list #'(in-state -> out-state)))]))
 
 (define-syntax (parse-clauses stx)
   (syntax-parse stx
-    [(_ neighbors:id neighborhood-len:expr state-type:id state:id 
-      ((in-state:expr (~datum ->) out-state:expr) condition-token:expr ...) clauses ...+)
-      #'(begin
-          (ann out-state state-type)
-          (ann in-state state-type)
-          (if 
-            (and (parse-condition neighbors neighborhood-len condition-token ...) (equal? in-state state))
-            out-state 
-            (parse-clauses neighbors neighborhood-len state-type state  clauses ...)))]
-      
-    [(_ _ _ state-type:id _ ((~datum default) out-state:expr)) 
-      #'(begin 
-        (ann out-state state-type)
-        out-state)]
-    [(_ neighbors _ _ state) #'(error (format "No matching case found for ~a with neigbors ~a" neighbors state))]))
+    [(_ neighbors:id neighborhood-len:expr state-type:id [transition:expr condition-token:expr ...] 
+              clauses ...)
+     (define/syntax-parse 
+       (current-simple-transition more-simple-transitions ...) 
+       (deconstruct-transition #'transition))
+     #'(lambda ([in-state : state-type])
+         ((parse-transition current-simple-transition)
+          in-state
+          (lambda () (parse-condition neighbors neighborhood-len condition-token ...))
+          ; is a thunk to delay execution for performance gains and short-circuiting
+          (parse-clauses neighbors neighborhood-len state-type 
+                         (more-simple-transitions condition-token ...) ... clauses ...)))]
+            
+    [(_ neighbors _ _)
+     #'(lambda (state)
+         (error (format "No valid transition from state ~a" state)))]))
+
 
 ;; Main macro for declaring a Rule for a cellular automata
 (define-syntax (rule stx)
@@ -87,28 +113,29 @@
       #:offset-type offset-type:id
       #:state-type state-type:id
       #:neighborhood neighborhood:expr
-      clauses:expr ...)
-        #'(lambda 
-                ([state-map : (StateMap cell-type state-type)]
-                 [topology : (Topology cell-type offset-type)]
-                 [cell : cell-type])
-              (let ([in-state : state-type (hash-ref state-map cell)]
-                    [neighbors : (Listof state-type) (get-neighbors cell state-map topology neighborhood)])
-                    (parse-clauses neighbors (length neighborhood) state-type in-state clauses ...)))])); Pass down the length of the full neighborhood to enable runtime checks of conditions which specify a number of cells that doesn't make sense
+      clauses:expr ...) 
+     #`(lambda
+           ([state-map : (StateMap cell-type state-type)]
+            [topology : (Topology cell-type offset-type)]
+            [cell : cell-type]) 
+         (let ([in-state : state-type (hash-ref state-map cell)]
+               [neighbors : (Listof state-type) (get-neighbors cell state-map topology neighborhood)])
+           ((parse-clauses neighbors (set-count neighborhood) state-type clauses ...) in-state)))]))
+; Pass down the length of the full neighborhood to enable runtime checks of conditions which specify a number of cells that doesn't make sense
 
 ;; Shorthand for making a rule with alive and dead states with a default state of dead and uses a moore neighborhood with cells and offsets represented as Posn
 (define-syntax (lifelike stx)
   (syntax-parse stx
-    [(_ 
-    [(~datum born) born-cond:expr ...+]
-    [(~datum survive) survive-cond:expr ...+])
-    #'(rule 
-    #:cell-type Posn
-    #:offset-type Posn 
-    #:state-type AliveOrDead
-    #:neighborhood (moore-neighborhood)
-    [('dead -> 'alive) (born-cond ...) in 'alive]
-    [('alive -> 'alive) (survive-cond ...) in 'alive] 
-    [default 'dead])]))
+    [(_
+      [(~datum born) born-cond:expr ...+]
+      [(~datum survive) survive-cond:expr ...+])
+     #'(rule
+        #:cell-type Posn
+        #:offset-type Posn
+        #:state-type AliveOrDead
+        #:neighborhood (moore-neighborhood)
+        [('dead -> 'alive) (born-cond ...) in 'alive]
+        [('alive -> 'alive) (survive-cond ...) in 'alive]
+        [(_ -> 'dead)])]))
 
 (provide lifelike rule)

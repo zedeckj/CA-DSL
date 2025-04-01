@@ -13,42 +13,26 @@
        (for-syntax syntax/parse syntax/macro-testing))
 
    ;; In CA, this is often expressed as "B3/S23"
-   #;(define conways : LifelikeRule
-   (rule 
+#;(define conways : LifelikeRule
+   (rule
        #:cell-type Posn
        #:offset-type Posn
        #:state-type AliveOrDead
        #:neighborhood (moore-neighborhood)
        [('dead -> 'alive) 3 in 'alive]
        [('alive -> 'alive) (2 3) in 'alive]
-       [default 'dead])
-       #;(lifelike 
-           [born 3]
-           [survive 2 3]))
+       [(_ -> 'dead)]))
+
+(define conways : LifelikeRule
+    (lifelike 
+        [born 3]
+        [survive 2 3]))
 
 
-(define-type WireWorldState (U 'head 'tail 'conductor 'empty))
-(define wireworld ;; https://conwaylife.com/wiki/OCA:WireWorld
-    (rule 
 
-        #:cell-type Posn
-        #:offset-type Posn
-        #:state-type WireWorldState
-        #:neighborhood (moore-neighborhood)
-        [('head -> 'tail)]
-        [('tail -> 'conductor)]
-        [('conductor -> 'head) (1 2) in 'head]
-        [('conductor -> 'conductor)]
-        [default 'empty]))
-
-           
-(define world : (World Posn Posn WireWorldState) (random-world 50 50 (list 'head 'tail 'conductor 'empty)))
-(define renderer : (Renderer Posn Posn WireWorldState) (make-2d-renderer (make-default-colormap 'head 'tail 'conductor 'empty)))
-(run world wireworld renderer)
-
-#;(define world : LifelikeWorld (random-world 50 50 ALIVE-OR-DEAD-STATES))
-#;(define renderer : LifelikeRenderer (make-2d-renderer colormap-alive-or-dead))
-#;(run world conways renderer)
+(define world : LifelikeWorld (random-world 50 50 ALIVE-OR-DEAD-STATES))
+(define renderer : LifelikeRenderer (make-2d-renderer colormap-alive-or-dead))
+(run world conways renderer)
 
 
 
@@ -62,33 +46,6 @@
     [('dead -> 'alive) 3 in 'alive]
     [('alive -> 'alive) (2 3) in 'alive]
     [default 'dead])
-   
-
-
-(define wireworld ;; https://conwaylife.com/wiki/OCA:WireWorld
-(rule 
-    #state-type (U 'head 'tail 'conductor 'empty)
-    #:cell-type Posn
-    #:offset-type Posn
-    #neighborhood (moore-neighborhood)
-    [('head -> 'tail)]
-    [('tail -> 'conductor)]
-    [('conductor -> 'head) (1 2) in 'head]
-    [('conductor -> 'conductor)]
-    [default 'empty]))
-
-
-(rule 
-    #state-type (U 'head 'tail 'conductor 'empty)
-    #:cell-type Posn
-    #:offset-type Posn
-    #neighborhood (moore-neighborhood)
-    [('head -> 'tail)]
-    [('tail -> 'conductor)]
-    [('conductor -> 'head) (1 2) in 'head]
-    [('conductor -> 'conductor)]
-    [default 'empty])
-
 
 
    ; rule roughly further expands to 

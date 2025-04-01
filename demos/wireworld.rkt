@@ -19,9 +19,9 @@
         #:state-type WireWorldState
         #:neighborhood (moore-neighborhood)
         [('head -> 'tail -> 'conductor)]
-        [('conductor -> 'conductor)]
         [('conductor -> 'head) (1 2) in 'head]
-        [default 'empty]))
+        [('conductor -> 'conductor)]
+        [(_ -> 'empty)]))
 
            
 (define world : (2DWorld WireWorldState) (random-world 50 50 (list 'head 'tail 'conductor 'empty)))
