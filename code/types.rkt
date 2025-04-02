@@ -55,5 +55,8 @@ Meaning for parametric type variables:
 (define-type LifelikeWorld (World Posn Posn AliveOrDead))
 (define-type LifelikeRenderer (Renderer Posn Posn AliveOrDead))
 
+(define-type (Interleaved A B) (Rec x (U Null (Pairof A (Pairof B x)))))
+
+
 ; TODO Is there a provide-all-out for types?
-(provide StateMap Topology 2DRenderer 2DWorld ActiveFilter ColorMap Rule Renderer AliveOrDead World (struct-out world) (struct-out posn) Neighborhood Posn LifelikeRule LifelikeWorld LifelikeRenderer)
+(provide StateMap Topology 2DRenderer 2DWorld ActiveFilter ColorMap Rule Renderer AliveOrDead World (struct-out world) (struct-out posn) Neighborhood Posn LifelikeRule LifelikeWorld LifelikeRenderer Interleaved)
