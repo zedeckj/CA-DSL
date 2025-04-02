@@ -34,7 +34,7 @@
 (define (cells-in-region corner1 corner2)
     (match-define (list x1 x2) (sort (list (posn-x corner1) (posn-x corner2)) <))
     (match-define (list y1 y2) (sort (list (posn-y corner1) (posn-y corner2)) <))
-    (for*/set : [Setof Posn] ([x : Integer (in-range x1 x2)] [y : Integer (in-range y1 y2)]) (Posn x y))) ; in-inclusive-range does not have proper type annotations
+    (for*/set : [Setof Posn] ([x : Integer (in-range x1 (add1 x2))] [y : Integer (in-range y1 (add1 y2))]) (Posn x y))) ; in-inclusive-range does not have proper type annotations
 (module+ test
     (define EXAMPLE-SET-1 (set (Posn 0 0) (Posn 0 1) (Posn 0 2) (Posn 1 0) (Posn 1 1) (Posn 1 2) (Posn 2 0) (Posn 2 1) (Posn 2 2)))
     (check-equal? (cells-in-region (Posn 0 0) (Posn 2 2)) EXAMPLE-SET-1)
@@ -115,12 +115,12 @@
 (define (rect-solid corner1 corner2 state)
     (rect-random corner1 corner2 (lambda () state)))
 
-;; Creates a statemap over a rectangular region with cells initialized to random states
+;; Creates a statemap over a rectangular region with cells initialized using the given thunk
 (: rect-random : (All (S) Posn Posn (-> S) -> (StateMap Posn S)))
 (define (rect-random corner1 corner2 rand-state-generator)
     (rect-custom corner1 corner2 (lambda (_) (rand-state-generator))))
 
-;; Creates a statemap over a rectangular region with cells initialized to random states
+;; Creates a statemap over a rectangular region with cells initialized using the given function
 (: rect-custom : (All (S) Posn Posn (-> Posn S) -> (StateMap Posn S)))
 (define (rect-custom corner1 corner2 state-fn)
     (define x : [Listof (Pairof Posn S)] (for/list : [Listof (Pairof Posn S)]
