@@ -47,20 +47,26 @@
     [(_ args:expr ...) #'(pares-count args ...)]))
 
 #;(module+ test
-    (check-equal? (phase1-eval (parse-c)))
-    )
+    (check-equal? (phase1-eval (parse-c))))
 
 (define-syntax (parse-condition stx)
   (syntax-parse stx
-    [(_ neighbors:expr neighborhood-len (count:expr ...+) (~datum in) state:expr)
+    [(_ neighbors:expr neighborhood-len:expr (count:expr ...+) (~datum in) state:expr)
      #'(let
            ([count-list : (Listof Nonnegative-Integer) (list count ...)])
          (has-neighbors-in-state? state neighbors count-list))]
-    [(_ neighbors:expr neighborhood-len count:expr (~datum in) state:expr)
+    [(_ neighbors:expr neighborhood-len:expr count:expr (~datum in) state:expr)
      #'(let ([count-var : Nonnegative-Integer count])
          (has-neighbors-in-state? state neighbors (list count-var)))]
     [(_ neighbors:expr neighborhood-len) #'#t]))
 
+
+#;(define-syntax (parse-compound-cond stx)
+	(syntax-parse stx
+		[(_ neighbors:expr neighborhood-len:expr cond-tokens1:expr ... (~datum and) cond-tokens2:expr ...)
+			#'(and 
+					(parse-condition neighbors neighborhood-len cond-tokens1 ...) 
+					(parse-condition neighbors neighborhood-len cond-tokens2 ...))]))
 
 (define-syntax (parse-transition stx)
   (syntax-parse stx
@@ -113,7 +119,7 @@
       #:offset-type offset-type:id
       #:state-type state-type:id
       #:neighborhood neighborhood:expr
-      clauses:expr ...) 
+      clauses:expr ...+) 
      #`(lambda
            ([state-map : (StateMap cell-type state-type)]
             [topology : (Topology cell-type offset-type)]
@@ -123,19 +129,30 @@
            ((parse-clauses neighbors (set-count neighborhood) state-type clauses ...) in-state)))]))
 ; Pass down the length of the full neighborhood to enable runtime checks of conditions which specify a number of cells that doesn't make sense
 
+
+;; Shorthand macro for the common usecase of making a Rule with Posn cell and offset types, and a neighborhood consisting of the Moore neighborhood with a radius of 1
+(define-syntax (moore-rule stx)
+	(syntax-parse stx
+		[(_
+			#:state-type state-type:id
+			clauses:expr ...+)
+		#'(rule 
+			 #:cell-type Posn
+			 #:offset-type Posn
+			 #:state-type state-type
+			 #:neighborhood (moore-neighborhood)
+			 clauses ...)]))
+
 ;; Shorthand for making a rule with alive and dead states with a default state of dead and uses a moore neighborhood with cells and offsets represented as Posn
 (define-syntax (lifelike stx)
   (syntax-parse stx
     [(_
       [(~datum born) born-cond:expr ...+]
       [(~datum survive) survive-cond:expr ...+])
-     #'(rule
-        #:cell-type Posn
-        #:offset-type Posn
+     #'(moore-rule
         #:state-type AliveOrDead
-        #:neighborhood (moore-neighborhood)
         [('dead -> 'alive) (born-cond ...) in 'alive]
         [('alive -> 'alive) (survive-cond ...) in 'alive]
         [(_ -> 'dead)])]))
 
-(provide lifelike rule)
+(provide lifelike rule moore-rule)

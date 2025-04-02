@@ -14,17 +14,21 @@
 
 (define-type WireWorldState (U 'head 'tail 'conductor 'empty))
 (define wireworld ;; https://conwaylife.com/wiki/OCA:WireWorld
-    (rule
-        #:cell-type Posn
-        #:offset-type Posn
+    (moore-rule
         #:state-type WireWorldState
-        #:neighborhood (moore-neighborhood)
         [('head -> 'tail -> 'conductor)]
         [('conductor -> 'head) (1 2) in 'head]
         [('conductor -> 'conductor)]
         [(_ -> 'empty)]))
 
+(: wireworld-color-map : (ColorMap WireWorldState))
+(define (wireworld-color-map state)
+	(match state
+	 ['empty BLACK]
+	 ['conductor YELLOW]
+	 ['head BLUE]
+	 ['tail RED]))
            
 (define world : (2DWorld WireWorldState) (random-world 50 50 (list 'head 'tail 'conductor 'empty)))
-(define renderer : (2DRenderer WireWorldState) (make-2d-renderer (make-default-colormap 'head 'tail 'conductor 'empty)))
+(define renderer : (2DRenderer WireWorldState) (make-2d-renderer wireworld-color-map))
 (run world wireworld renderer)
