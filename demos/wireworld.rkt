@@ -17,7 +17,7 @@
     (moore-rule
         #:state-type WireWorldState
         [('head -> 'tail -> 'conductor)]
-        [('conductor -> 'head) (1 2) in 'head]
+        [('conductor -> 'head) (1 9) in 'head]
         [('conductor -> 'conductor)]
         [(_ -> 'empty)]))
 

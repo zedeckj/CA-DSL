@@ -11,3 +11,11 @@ Rule Changes:
 - No need to post hoc enforce active filter, only call rule for cells that are active 
 
 
+
+4/4/25
+- Implement `wire` macro, and run wireworld with preset 
+- Static check for neighbor counts in `lifelike` and `moore-neighborhood`, with option to specify when using `rule`
+- Logical operators `and`, `or`, `not`
+- Neighbor count negation `except`
+- Arbitrary function call syntax `fn`
+

@@ -7,7 +7,6 @@
         [born 3]
         [survive 2 3]))
 
-
 (define world : LifelikeWorld 
     (simple-world #:statemap 
         (ann (rect-random (Posn 5 5) (Posn 30 30) (random-chooser-biased 'alive #e0.1 'dead #e0.7))
