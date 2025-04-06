@@ -1,6 +1,7 @@
 #lang typed/racket
 (require "types.rkt" "utils.rkt" "library/statemaps.rkt" "library/topologies.rkt")
 
+#|
 ;; (StateMap C S) examples
 (define STATEMAP-EMPTY : (StateMap Any Any) (make-hash ))
 ;; Statemap with (0,0) -> 1 and (1,0) -> 1
@@ -31,4 +32,5 @@
 (define WORLD-CART-2CELL : (World Posn Posn Integer) (World STATEMAP-0-1 cartesian-topology (lambda (c) #t)))
 
 (provide (all-defined-out))
+|#
 

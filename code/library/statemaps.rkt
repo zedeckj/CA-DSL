@@ -5,7 +5,6 @@
     "topologies.rkt"
     "neighborhoods.rkt"
     racket/hash
-    racket/set
     (for-syntax syntax/parse syntax/macro-testing))
 (require/typed racket/hash 
     [hash-filter (All (C S) (-> (StateMap C S) (-> C S Boolean) (StateMap C S)))]
@@ -25,7 +24,6 @@
 
 (: statemap-construct : (All (C S) (-> (Listof (Pair C S)) (StateMap C S))))
 (define statemap-construct make-hash)
-
 
 ;; EFFECT: Sets a cell to have the given state in the provided statemap, potentially overwriting old an value
 (: statemap-set! : (All (C S) (-> (StateMap C S) C S Void)))
@@ -64,10 +62,8 @@
                 (unless (void? proc-res)
                     (statemap-set! res (car proc-res) (cdr proc-res))))))
     res)
-
-
 (module+ test
-    #;(check-equal?
+    (check-equal?
     (statemap-map 
         (statemap-construct (ann (list (cons 0 #t) (cons 1 #f)) (Listof (Pairof Integer Boolean)))) 
         (lambda ([c : Integer] [s : Boolean]) 
@@ -84,46 +80,6 @@
     (statemap-for-each s2 f)
     res)
 
-
-;; Utility constructor for a simple rectangular grids. Accepts a list of rows going from top to bottom, where each row is a list of states going from left to right. Ragged grids are ok. 
-(: make-statemap-2d : (All (S) (-> (Listof S) * (StateMap Posn S))))
-(define (make-statemap-2d . rows)
-    (define ret : (StateMap Posn S) (statemap-init))
-    (: make-row-of-states : (Pairof Nonnegative-Integer (Listof S)) -> Void)
-    (define (make-row-of-states row-with-index)
-        (match-define (cons row-index row) row-with-index)
-        (: handle-cell : (Pairof Nonnegative-Integer S) -> (Pairof Posn S))
-        (define (handle-cell cell-with-index)
-            (match-define (cons col-index state) cell-with-index)
-            (cons (Posn col-index row-index) state))
-        (for ([v (map handle-cell (enumerate row))]) 
-            (statemap-set! ret (car v) (cdr v))))
-    (for ([v (enumerate rows)])
-        (make-row-of-states v))
-    ret)
-
-(module+ test
-    (check-equal? (make-statemap-2d '(0-0 1-0) '(0-1) '(0-2 1-2 2-2))
-        (hash 
-            (Posn 0 0) '0-0 (Posn 1 0) '1-0
-            (Posn 0 1) '0-1
-            (Posn 0 2) '0-2 (Posn 1 2) '1-2 (Posn 2 2) '2-2))
-    (define s1 
-        (make-statemap-2d 
-        (list 'dead 'dead 'dead)
-        (list 'dead 'alive 'dead)
-        (list 'dead 'dead 'dead)))
-    (define s2 
-        (make-statemap-2d (list 'alive)))
-    (define s3 
-        (make-statemap-2d 
-        (list 'dead 'dead 'dead)
-        (list 'dead 'alive 'dead)
-        (list 'dead 'alive 'dead)))
-    (check-equal? 
-        (overlay/statemaps (make-finite-cartesian-topology 5 5) (Posn 0 0) s1 (Posn 1 2) s2)
-        s3))
-
 ;; Cells enclosed by a rectangle whose diagonal runs between the two given points
 (: cells-in-region : Posn Posn -> [Setof Posn])
 (define (cells-in-region corner1 corner2)
@@ -133,6 +89,7 @@
         ([x : Integer (in-range x1 (add1 x2))] 
          [y : Integer (in-range y1 (add1 y2))]) 
          (Posn x y))) ; in-inclusive-range does not have proper type annotations
+
 (module+ test
     (define EXAMPLE-SET-1 : (Setof Posn)
         (set (Posn 0 0) (Posn 0 1) (Posn 0 2) (Posn 1 0) 
@@ -184,7 +141,7 @@
             (cons cell (state-fn cell))))
     (statemap-construct x))
 
-;; Accepts arguments alternating between an absolute position and then a statemap to placed with its lower left corner at that absolute position.
+;; Accepts arguments alternating between an absolute position and then a statemap to be placed with its lower left corner at that absolute position.
 ;; Similar functionality to overlay/xy in htdp2/image
 (: overlay/statemaps (All (C O S) (->* ([Topology C O]) #:rest-star (O (StateMap C S)) (StateMap C S))))
 (define (overlay/statemaps topology . absolute-posn-shape) 
@@ -207,32 +164,81 @@
                                     (cons new-cell state)))))])
                 (statemap-merge translated-shape (apply overlay/statemaps topology (cddr absolute-posn-shape))))]))
 
+;; Creates a statemap with the given cells initialized to the given state
 (: fill-cells : (All (C S) (-> S (Setof C) (StateMap C S))))
 (define (fill-cells state cells)
-    (display state)
-    (display cells)
-    (statemap-construct (set-map (lambda (cell) (cons cell state)) cells)))
+    (statemap-construct (set-map (lambda ([cell : C]) (cons cell state)) cells)))
 
-;; Creates a statemap 
-(: path : (All (S) (->* (S (Listof (Pairof Direction Nonnegative-Integer))) (#:topology (Topology Posn Posn)) (StateMap Posn S))))
-(define (path state segs #:topology [topology cartesian-topology])
-    (: path-helper : Posn (Listof (Pairof Direction Nonnegative-Integer)) -> (StateMap Posn S))
-    (define (path-helper start segs)
+;; Internal function to create a statemap of the shape of a width 1 path through a cartesian grid 
+(: path-internal : (All (S) (-> (Topology Posn Posn) 
+                                Posn 
+                                (Listof (List S Nonnegative-Integer Direction)) 
+                                (StateMap Posn S))))
+(define (path-internal topology start segs)
+    (: path-helper : (-> (Listof (List S Nonnegative-Integer Direction)) 
+                        (StateMap Posn S)))
+    (define (path-helper segs)
         (cond
             [(empty? segs) (statemap-init)]
             [(let* ([cur-seg (first segs)]
-                    [offset (posn-scale (cdr cur-seg) (direction->offset (car cur-seg)))]
-                    [current-shape (fill-cells state (cells-in-region start (posn-add start offset)))])
-            (overlay/statemaps 
-                topology 
-                start
-                current-shape
-                (posn-add start offset)
-                (path-helper (posn-add offset start) (rest segs))))]))
-    (path-helper (Posn 0 0) segs))
-(module+ test
-    (check-equal? (path 'alive )))
+                    [state (first cur-seg)]
+                    [magn (second cur-seg)]
+                    [dir (third cur-seg)]
+                    [offset (posn-scale (sub1 magn) (direction->offset dir))]
+                    [current-shape (fill-cells state (cells-in-region (Posn 0 0) offset))])
+                        (overlay/statemaps 
+                            topology 
+                            (Posn 0 0) 
+                            current-shape
+                            offset
+                            (path-helper (rest segs))))]))
+    (overlay/statemaps topology start (path-helper segs)))
 
-(provide make-statemap-2d ALIVE-OR-DEAD-STATES rect-custom rect-random rect-solid biased-random-select path)
+(begin-for-syntax
+  (define-syntax-class direction
+    #:description "direction"
+    (pattern (~or (~datum up) (~datum left) (~datum right) (~datum down)))))
+
+;; Syntaxof -> SyntaxOf Listof (List S PositiveInteger)
+(define-syntax (parse-path-seg stx)
+    (syntax-parse stx
+    [(_ type (state:expr magnitude:expr dir:direction more ...))
+    #'(cons (list (ann state type) magnitude (ann (quote dir) Direction)) (parse-path-seg type (state more ...)))]
+    [(_ type (state:expr)) #''()]))
+
+(define-syntax (parse-paths stx)
+    (syntax-parse stx
+        [(_ type path-seg:expr  ...)
+            #'(append (parse-path-seg type path-seg) ...)]))
+
+#|
+(path (1 0) ['state1 5 up 3 right] ['state2 4 down 1 left])
+->
+(path-internal (Posn 1 0) 
+        (list 
+        (list 'state1 5 'up) (list 'state1 3 'right)) 
+            (list 'state2 4 'down) (list 'state2 1 left) '())
+|#
+;; Draws a path as a statemap
+(define-syntax (path stx)
+    (syntax-parse stx
+        [(_ (~datum :) type-name:id (x:expr y:expr)  paths ...+)
+            #'(ann (path-internal cartesian-topology 
+                            (Posn x y) 
+                            (parse-paths type-name paths ...)) (StateMap Posn type-name))]))
+
+(module+ test
+    (check-equal? 
+        (path : AliveOrDead (1 -1) ('alive 2 right)) 
+        (statemap-construct (list (cons (Posn 1 -1) 'alive) (cons (Posn 2 -1) 'alive))))
+    (check-equal? 
+        (path : AliveOrDead (-2 3) ('dead 3 up 5 right 3 down 1 left))
+            (fill-cells 'dead (set (Posn -2 3) (Posn -2 2) (Posn -2 1) 
+                (Posn -1 1) (Posn 0 1) (Posn 1 1) (Posn 2 1)
+                (Posn 2 2) (Posn 2 3)))))
+
+
+
+(provide ALIVE-OR-DEAD-STATES rect-custom rect-random overlay/statemaps rect-solid biased-random-select path)
 
 

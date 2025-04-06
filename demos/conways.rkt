@@ -7,6 +7,8 @@
         [born 3]
         [survive 2 3]))
 
+
+
 (define world : LifelikeWorld 
     (simple-world #:statemap 
         (ann 

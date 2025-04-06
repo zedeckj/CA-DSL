@@ -25,9 +25,6 @@
           neighbors)])
     (ormap (lambda ([c : Nonnegative-Integer]) (= c found-count)) counts)))
 
-(module+ test
-  (check-equal? (get-neighbors (Posn 1 1) STATEMAP-3x3-LIVE-CROSS cartesian-topology (moore-neighborhood)) 4))
-
 (define-syntax (parse-count stx)
   (syntax-parse stx
     [(_ neighbors:expr neighborhood-len count:expr)

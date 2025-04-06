@@ -17,7 +17,7 @@
     (moore-rule
         #:state-type WireWorldState
         [('head -> 'tail -> 'conductor)]
-        [('conductor -> 'head) (1 9) in 'head]
+        [('conductor -> 'head) (1 2) in 'head]
         [('conductor -> 'conductor)]
         [(_ -> 'empty)]))
 
@@ -29,6 +29,20 @@
 	 ['head BLUE]
 	 ['tail RED]))
            
-(define world : (2DWorld WireWorldState) (random-world 50 50 (list 'head 'tail 'conductor 'empty)))
+
+(define world : (2DWorld WireWorldState) 
+    (simple-world 
+        #:statemap 
+        (overlay/statemaps 
+            cartesian-topology  
+            (Posn -10 -10) 
+            (rect-solid 20 20 (ann 'empty WireWorldState))
+            (Posn 0 0)  
+            (path : WireWorldState (0 0) 
+                ['conductor 5 down 3 right 2 down] 
+                ['head 2 down] 
+                ['conductor 7 left]))))
+
+
 (define renderer : (2DRenderer WireWorldState) (make-2d-renderer wireworld-color-map))
 (run world wireworld renderer)

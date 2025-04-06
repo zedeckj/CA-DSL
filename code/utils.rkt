@@ -44,8 +44,8 @@
     
 
 (define direction-offset
-    (hash 'up (Posn 0 1)
-        'down (Posn 0 -1)
+    (hash 'up (Posn 0 -1)
+        'down (Posn 0 1)
         'left (Posn -1 0)
         'right (Posn 1 0)))
 
@@ -61,5 +61,14 @@
 (define (posn-scale n posn)
   (Posn (* n (posn-x posn))
         (* n (posn-y posn))))
+
+;; Functions identically to racket set-map, but without errors regarding chaperones
+(: set-map : (All (T V) (-> (-> T V) (Setof T) (Listof V))))
+(define (set-map proc s)
+  (cond
+    [(set-empty? s) '()]
+    [else (cons (proc (set-first s)) (set-map proc (set-rest s)))]))
+(module+ test 
+  (check-equal? (set-map even? (set 1 2 3)) (list #f #t #f)))
 
 (provide (all-defined-out))
