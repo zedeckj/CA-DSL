@@ -5,6 +5,7 @@
     "topologies.rkt"
     "neighborhoods.rkt"
     racket/hash
+    racket/set
     (for-syntax syntax/parse syntax/macro-testing))
 (require/typed racket/hash 
     [hash-filter (All (C S) (-> (StateMap C S) (-> C S Boolean) (StateMap C S)))]
@@ -102,19 +103,32 @@
     ret)
 
 (module+ test
-;; TODO: this isn't type checking
-    #;(check-equal? (make-statemap-2d '(0-0 1-0) '(0-1) '(0-2 1-2 2-2))
+    (check-equal? (make-statemap-2d '(0-0 1-0) '(0-1) '(0-2 1-2 2-2))
         (hash 
             (Posn 0 0) '0-0 (Posn 1 0) '1-0
             (Posn 0 1) '0-1
-            (Posn 0 2) '0-2 (Posn 1 2) '1-2 (Posn 2 2) '2-2))) 
+            (Posn 0 2) '0-2 (Posn 1 2) '1-2 (Posn 2 2) '2-2))
+    (define s1 
+        (make-statemap-2d 
+        (list 'dead 'dead 'dead)
+        (list 'dead 'alive 'dead)
+        (list 'dead 'dead 'dead)))
+    (define s2 
+        (make-statemap-2d (list 'alive)))
+    (define s3 
+        (make-statemap-2d 
+        (list 'dead 'dead 'dead)
+        (list 'dead 'alive 'dead)
+        (list 'dead 'alive 'dead)))
+    (check-equal? 
+        (overlay/statemaps (make-finite-cartesian-topology 5 5) (Posn 0 0) s1 (Posn 1 2) s2)
+        s3))
 
 ;; Cells enclosed by a rectangle whose diagonal runs between the two given points
 (: cells-in-region : Posn Posn -> [Setof Posn])
 (define (cells-in-region corner1 corner2)
     (match-define (list x1 x2) (sort (list (posn-x corner1) (posn-x corner2)) <))
     (match-define (list y1 y2) (sort (list (posn-y corner1) (posn-y corner2)) <))
-    (display x1)
     (for*/set : [Setof Posn] 
         ([x : Integer (in-range x1 (add1 x2))] 
          [y : Integer (in-range y1 (add1 y2))]) 
@@ -152,17 +166,17 @@
         (lambda () (random-ref (make-selection-seq weighted-sequence)))))
 
 ;; Creates a statemap of a rectangle with states randomly chosen from the provided list
-(: rect-solid : (All (S) (Positive-Integer Positive-Integer S -> (StateMap Posn S))))
+(: rect-solid : (All (S) (Integer Integer S -> (StateMap Posn S))))
 (define (rect-solid width height state)
     (rect-random width height (lambda () state)))
 
 ;; Creates a statemap over a rectangular region with cells initialized using the given thunk
-(: rect-random : (All (S) (Positive-Integer Positive-Integer (-> S) -> (StateMap Posn S))))
+(: rect-random : (All (S) (Integer Integer (-> S) -> (StateMap Posn S))))
 (define (rect-random width height rand-state-generator)
     (rect-custom width height (lambda (_) (rand-state-generator))))
 
 ;; Creates a statemap over a rectangular region with cells initialized using the given function
-(: rect-custom : (All (S) Positive-Integer Positive-Integer (-> Posn S) -> (StateMap Posn S)))
+(: rect-custom : (All (S) Integer Integer (-> Posn S) -> (StateMap Posn S)))
 (define (rect-custom width height state-fn)
     (define x : [Listof (Pairof Posn S)] 
         (for/list : [Listof (Pairof Posn S)]
@@ -193,21 +207,32 @@
                                     (cons new-cell state)))))])
                 (statemap-merge translated-shape (apply overlay/statemaps topology (cddr absolute-posn-shape))))]))
 
-;; Esoteric type error idk
-#;(module+ test
-    (define s1 
-    (make-statemap-2d 
-    (list 'dead 'dead 'dead)
-    (list 'dead 'alive 'dead)
-    (list 'dead 'dead 'dead)))
-    (define s2 (make-statemap-2d (list 'alive)))
-    (define s3 
-    (make-statemap-2d 
-    (list 'dead 'dead 'dead)
-    (list 'dead 'alive 'dead)
-    (list 'dead 'alive 'dead)))
-    (check-equal? (overlay/statemaps (make-finite-cartesian-topology 5 5) (Posn 0 0) s1 (Posn 1 2) s2)))
+(: fill-cells : (All (C S) (-> S (Setof C) (StateMap C S))))
+(define (fill-cells state cells)
+    (display state)
+    (display cells)
+    (statemap-construct (set-map (lambda (cell) (cons cell state)) cells)))
 
-(provide make-statemap-2d ALIVE-OR-DEAD-STATES rect-custom rect-random rect-solid biased-random-select)
+;; Creates a statemap 
+(: path : (All (S) (->* (S (Listof (Pairof Direction Nonnegative-Integer))) (#:topology (Topology Posn Posn)) (StateMap Posn S))))
+(define (path state segs #:topology [topology cartesian-topology])
+    (: path-helper : Posn (Listof (Pairof Direction Nonnegative-Integer)) -> (StateMap Posn S))
+    (define (path-helper start segs)
+        (cond
+            [(empty? segs) (statemap-init)]
+            [(let* ([cur-seg (first segs)]
+                    [offset (posn-scale (cdr cur-seg) (direction->offset (car cur-seg)))]
+                    [current-shape (fill-cells state (cells-in-region start (posn-add start offset)))])
+            (overlay/statemaps 
+                topology 
+                start
+                current-shape
+                (posn-add start offset)
+                (path-helper (posn-add offset start) (rest segs))))]))
+    (path-helper (Posn 0 0) segs))
+(module+ test
+    (check-equal? (path 'alive )))
+
+(provide make-statemap-2d ALIVE-OR-DEAD-STATES rect-custom rect-random rect-solid biased-random-select path)
 
 
