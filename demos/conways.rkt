@@ -9,7 +9,10 @@
 
 (define world : LifelikeWorld 
     (simple-world #:statemap 
-        (ann (rect-random (Posn 5 5) (Posn 30 30) (random-chooser-biased 'alive #e0.1 'dead #e0.7))
+        (ann (rect-random 50 50
+                (biased-random-select 
+                (ann (list (cons 'alive 1) (cons 'dead 3))
+                    (Listof (Pairof AliveOrDead Nonnegative-Integer)))))
          (StateMap Posn AliveOrDead))))
 (define renderer : LifelikeRenderer (make-2d-renderer colormap-alive-or-dead))
 (run world conways renderer)

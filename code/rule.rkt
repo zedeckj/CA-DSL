@@ -1,7 +1,8 @@
 #lang typed/racket
 (require "types.rkt" "library/topologies.rkt" "library/neighborhoods.rkt" "examples.rkt" racket/syntax syntax/parse
          (for-syntax racket/syntax syntax/parse))
-(module+ test (require syntax/macro-testing typed/rackunit "examples.rkt"))
+(module+ test (require syntax/macro-testing typed/rackunit "examples.rkt")
+(require syntax/macro-testing))
 
 ;; Gets the states occurring in a given neighborhood
 (: get-neighbors : (All (C O S) (C (StateMap C S) (Topology C O) (Neighborhood O) -> (Listof S))))
@@ -30,6 +31,7 @@
 (define-syntax (parse-count stx)
   (syntax-parse stx
     [(_ neighbors:expr neighborhood-len count:expr)
+    ;; Should be moved to static check
      #'(if
         (> count neighborhood-len)
         (raise-syntax-error (format "Count must not exceed size of neighborhood (~a)" neighborhood-len) count)
@@ -38,16 +40,12 @@
 
 ;; Processes the neighbors
 (define-syntax (parse-counts stx)
-
   (syntax-parse stx
     [(_ neighbors:expr _ (~datum all))
      #'(length neighbors)]
     [(_ neighbors:expr neighborhood-len (count:expr ... ))
-     #'(list (parse-counts neighbors neigborhood-len count) ...)]
-    [(_ args:expr ...) #'(pares-count args ...)]))
+     #'(list (parse-counts neighbors neigborhood-len count) ...)]))
 
-#;(module+ test
-    (check-equal? (phase1-eval (parse-c))))
 
 (define-syntax (parse-condition stx)
   (syntax-parse stx
