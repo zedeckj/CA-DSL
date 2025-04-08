@@ -1,5 +1,6 @@
 #lang typed/racket
 
+(require (for-syntax syntax/parse))
 (require typed/2htdp/image)
 
 ;; Represents a cell on a 2D coordinate plane
@@ -16,7 +17,16 @@ Meaning for parametric type variables:
         Example: (U 'alive 'dead), Byte
 |#
 
-(define-type AliveOrDead (U 'alive 'dead))
+(define-syntax (define-states stx)
+    (syntax-parse stx
+        [(_ states-name:expr (~datum :) type:id (state-val:id ...+))
+        #'(begin
+            (define-type type (U (quote state-val) ...))
+            (define states-name : (Listof type) (list (quote state-val) ...))
+            (define state-val : type (ann (quote state-val) type)) ...)]))
+
+
+(define-states alive-or-dead : AliveOrDead (alive dead))
 
 ;;  Represents a data structure for storing the states of cells in the CA
 (define-type (StateMap C S) (Mutable-HashTable C S))
@@ -60,5 +70,5 @@ Meaning for parametric type variables:
 
 ; TODO Is there a provide-all-out for types?
 (provide StateMap Topology 2DRenderer 2DWorld ActiveFilter ColorMap Rule Renderer 
-    AliveOrDead World (struct-out world) (struct-out posn) Neighborhood Posn 
+    AliveOrDead define-states alive dead World (struct-out world) (struct-out posn) Neighborhood Posn 
     LifelikeRule LifelikeWorld LifelikeRenderer Interleaved Direction)

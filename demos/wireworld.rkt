@@ -25,10 +25,12 @@
 (: wireworld-color-map : (ColorMap WireWorldState))
 (define (wireworld-color-map state)
 	(match state
+    ;; match needs these to be quoted or the color map wont work :(
 	 ['insulator BLACK]
 	 ['conductor YELLOW]
 	 ['head BLUE]
 	 ['tail RED]))
+
            
 (define-2d-world world : WireWorldState
     #:state-map 

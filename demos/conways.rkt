@@ -16,7 +16,7 @@
 (define-2d-world world : AliveOrDead 
     #:state-map (rect-from 50 50
                 (biased-random-select 
-                    (list (cons 'alive 3) (cons 'dead 4)))))
+                    (list (cons alive 3) (cons dead 4)))))
 
 (define renderer : LifelikeRenderer (make-2d-renderer colormap-alive-or-dead))
 (run world conways renderer)

@@ -238,14 +238,6 @@
                 (Posn -1 1) (Posn 0 1) (Posn 1 1) (Posn 2 1)
                 (Posn 2 2) (Posn 2 3)))))
 
-(define-syntax (define-states stx)
-    (syntax-parse stx
-        [(_ states-name:expr (~datum :) type:id (state-val:id ...+))
-        #'(begin
-            (define-type type (U (quote state-val) ...))
-            (define states-name : (Listof type) (list (quote state-val) ...))
-            (define state-val : type (ann (quote state-val) type)) ...)]))
-
 (module+ test
     (define-states states : FooStates (a b c))
     (check-equal? a 'a)
