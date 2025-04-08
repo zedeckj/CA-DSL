@@ -31,12 +31,12 @@
            
 
 (define world : (2DWorld WireWorldState) 
-    (simple-world 
-        #:statemap 
+    (simple-2d-world 
+        #:state-map 
         (overlay/statemaps 
             cartesian-topology  
             (Posn -10 -10) 
-            (rect-solid 20 20 (ann 'empty WireWorldState))
+            (ann (rect-solid 20 20 'empty) (StateMap Posn WireWorldState))
             (Posn 0 0)  
             (path : WireWorldState (0 0) 
                 ['conductor 5 down 3 right 2 down] 
