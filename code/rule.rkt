@@ -53,8 +53,17 @@
 		[(_ neighbors:expr neighborhood-len:expr 
           cond-tokens1:expr ... (~datum or) cond-tokens2:expr ...)
 			#'(or 
-					(parse-condition neighbors neighborhood-len cond-tokens1 ...) 
-					(parse-condition neighbors neighborhood-len cond-tokens2 ...))]
+					(parse-compound-cond neighbors neighborhood-len cond-tokens1 ...) 
+					(parse-compound-cond neighbors neighborhood-len cond-tokens2 ...))]
+		[(_ neighbors:expr neighborhood-len:expr 
+          cond-tokens1:expr ... (~datum and) cond-tokens2:expr ...)
+			#'(and 
+					(parse-compound-cond neighbors neighborhood-len cond-tokens1 ...) 
+					(parse-compound-cond neighbors neighborhood-len cond-tokens2 ...))]
+		[(_ neighbors:expr neighborhood-len:expr 
+        (~datum not) cond-tokens:expr ...)
+			#'(not 
+					(parse-compound-cond neighbors neighborhood-len cond-tokens ...) )]
     [(_ neighbors:expr neighborhood-len:expr other:expr ...)
       #' (parse-condition neighbors neighborhood-len other ...)]))
 

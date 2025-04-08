@@ -18,8 +18,8 @@
     (moore-rule
         #:state-type PredatorsAndPreyStates
         [(prey -> predator) 8 in prey]
-        [(prey -> prey) 0 in predator]
-        [(empty -> prey) some in prey]
+        [(prey -> prey) not some in predator]
+        [(empty -> prey) some in prey and not some in predator]
         [(predator -> empty) 0 in prey]
         [(_ -> empty)]))
 
