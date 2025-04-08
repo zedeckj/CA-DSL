@@ -30,7 +30,7 @@
 (define-syntax (parse-count stx)
   (syntax-parse stx
     [(_ neighbors:expr _ (~datum all))
-     #'(length neighbors)]
+     #'(list (length neighbors))]
     [(_ _ neighborhood-len:expr (~datum some))
      #'(range 1 (add1 neighborhood-len))]
      [(_ _ _ count:expr)

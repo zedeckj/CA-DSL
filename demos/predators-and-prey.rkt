@@ -17,10 +17,10 @@
 (define predators-and-prey
     (moore-rule
         #:state-type PredatorsAndPreyStates
-        [(prey -> predator) 8 in prey]
+        [(prey -> predator) all in prey]
         [(prey -> prey) not some in predator]
         [(empty -> prey) some in prey and not some in predator]
-        [(predator -> empty) 0 in prey]
+        [(predator -> empty) not some in prey]
         [(_ -> empty)]))
 
            
