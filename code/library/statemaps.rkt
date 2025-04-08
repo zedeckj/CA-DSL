@@ -125,21 +125,20 @@
 ;; Creates a statemap of a rectangle composed othe given state
 (: rect-solid : (All (S) (Integer Integer S -> (StateMap Posn S))))
 (define (rect-solid width height state)
-    (rect-from width height (lambda () state)))
+    (rect-from width height (lambda () : S state)))
 
 ;; Creates a statemap over a rectangular region with cells initialized using the given thunk
 (: rect-from : (All (S) (Integer Integer (-> S) -> (StateMap Posn S))))
-(define (rect-from width height rand-state-generator)
-    (rect-custom width height (lambda (_) (rand-state-generator))))
+(define (rect-from width height state-generator)
+    (rect-custom width height (lambda (_) : S (state-generator))))
 
 ;; Creates a statemap over a rectangular region with cells initialized using the given function
 (: rect-custom : (All (S) Integer Integer (-> Posn S) -> (StateMap Posn S)))
 (define (rect-custom width height state-fn)
-    (define x : [Listof (Pairof Posn S)] 
+    (ann (statemap-construct
         (for/list : [Listof (Pairof Posn S)]
             ([cell : Posn (cells-in-region (Posn 0 0) (Posn width height))]) 
-            (cons cell (state-fn cell))))
-    (statemap-construct x))
+            (cons cell (ann (state-fn cell) S)))) (StateMap Posn S)))
 
 ;; Accepts arguments alternating between an absolute position and then a statemap to be placed with its lower left corner at that absolute position.
 ;; Similar functionality to overlay/xy in htdp2/image
@@ -203,7 +202,9 @@
 (define-syntax (parse-path-seg stx)
     (syntax-parse stx
     [(_ type (state:expr magnitude:expr dir:direction more ...))
-    #'(cons (list (ann state type) magnitude (ann (quote dir) Direction)) (parse-path-seg type (state more ...)))]
+    #'(cons 
+        (list state magnitude (ann (quote dir) Direction)) 
+        (parse-path-seg type (state more ...)))]
     [(_ type (state:expr)) #''()]))
 
 (define-syntax (parse-paths stx)
@@ -222,10 +223,10 @@
 ;; Draws a path as a statemap
 (define-syntax (path stx)
     (syntax-parse stx
-        [(_ (~datum :) type-name:id (x:expr y:expr)  paths ...+)
+        [(_ (~datum :) type-name:id (x:expr y:expr) paths ...+)
             #'(ann (path-internal cartesian-topology 
-                            (Posn x y) 
-                            (parse-paths type-name paths ...)) (StateMap Posn type-name))]))
+                    (Posn x y) 
+                    (parse-paths type-name paths ...)) (StateMap Posn type-name))]))
 
 (module+ test
     (check-equal? 
@@ -239,10 +240,17 @@
 
 (define-syntax (define-states stx)
     (syntax-parse stx
-        [(_ states-name:expr (~datum :) type:id (state-val:expr ...+))
+        [(_ states-name:expr (~datum :) type:id (state-val:id ...+))
         #'(begin
-            (define-type type (U state-val ...))
-            (define states-name : (Listof type) (list state-val ...)))]))
+            (define-type type (U (quote state-val) ...))
+            (define states-name : (Listof type) (list (quote state-val) ...))
+            (define state-val : type (ann (quote state-val) type)) ...)]))
+
+(module+ test
+    (define-states states : FooStates (a b c))
+    (check-equal? a 'a)
+    (check-equal? b 'b)
+    (check-equal? c 'c))
 
 (provide define-states ALIVE-OR-DEAD-STATES rect-custom rect-from overlay/statemaps rect-solid biased-random-select path)
 

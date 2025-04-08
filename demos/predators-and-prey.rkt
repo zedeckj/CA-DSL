@@ -12,23 +12,23 @@
     (for-syntax syntax/parse syntax/macro-testing))
 (module+ test (require typed/rackunit))
 
-(define-states states : PredatorsAndPreyStates ('predator 'prey 'empty))
+(define-states states : PredatorsAndPreyStates (predator prey empty))
 
 (define predators-and-prey
     (moore-rule
         #:state-type PredatorsAndPreyStates
-        [('prey -> 'predator) 8 in 'prey]
-        [('prey -> 'prey) 0 in 'predator]
-        [('empty -> 'prey) (1 2 3 4 5 6 7 8) in 'prey]
-        [('predator -> 'empty) 0 in 'prey]
-        [(_ -> 'empty)]))
+        [(prey -> predator) 8 in prey]
+        [(prey -> prey) 0 in predator]
+        [(empty -> prey) (1 2 3 4 5 6 7 8) in prey]
+        [(predator -> empty) 0 in prey]
+        [(_ -> empty)]))
 
            
 (define-2d-world world : PredatorsAndPreyStates
      #:state-map 
         (rect-from 50 50
             (biased-random-select 
-                (list (cons 'prey 3) (cons 'empty 10)))))
+                (list (cons prey 3) (cons empty 10)))))
 
 (define renderer : (2DRenderer PredatorsAndPreyStates) 
     (make-2d-renderer (make-default-colormap states)))
