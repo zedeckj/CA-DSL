@@ -122,14 +122,14 @@
     (let ([select-seq (make-selection-seq weighted-sequence)])
         (lambda () (random-ref (make-selection-seq weighted-sequence)))))
 
-;; Creates a statemap of a rectangle with states randomly chosen from the provided list
+;; Creates a statemap of a rectangle composed othe given state
 (: rect-solid : (All (S) (Integer Integer S -> (StateMap Posn S))))
 (define (rect-solid width height state)
-    (rect-random width height (lambda () state)))
+    (rect-from width height (lambda () state)))
 
 ;; Creates a statemap over a rectangular region with cells initialized using the given thunk
-(: rect-random : (All (S) (Integer Integer (-> S) -> (StateMap Posn S))))
-(define (rect-random width height rand-state-generator)
+(: rect-from : (All (S) (Integer Integer (-> S) -> (StateMap Posn S))))
+(define (rect-from width height rand-state-generator)
     (rect-custom width height (lambda (_) (rand-state-generator))))
 
 ;; Creates a statemap over a rectangular region with cells initialized using the given function
@@ -239,6 +239,6 @@
 
 
 
-(provide ALIVE-OR-DEAD-STATES rect-custom rect-random overlay/statemaps rect-solid biased-random-select path)
+(provide ALIVE-OR-DEAD-STATES rect-custom rect-from overlay/statemaps rect-solid biased-random-select path)
 
 
