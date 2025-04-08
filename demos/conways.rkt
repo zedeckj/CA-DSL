@@ -1,6 +1,11 @@
 #lang typed/racket
-(require "../code/types.rkt" "../code/run.rkt" "../code/rule.rkt" "../code/renderer.rkt" "../code/library/statemaps.rkt" 
-    "../code/library/colormaps.rkt" "../code/library/topologies.rkt")
+(require "../code/types.rkt" 
+         "../code/run.rkt" 
+         "../code/rule.rkt" 
+         "../code/renderer.rkt" 
+         "../code/library/statemaps.rkt" 
+        "../code/library/colormaps.rkt" 
+        "../code/library/topologies.rkt")
 
 (define conways : LifelikeRule
     (lifelike 
@@ -8,13 +13,13 @@
         [survive 2 3]))
 
 
-
 (define world : LifelikeWorld 
-    (simple-world #:statemap 
+    (simple-2d-world #:state-map 
         (ann 
-            (rect-random 50 50
+            (rect-from 50 50
                 (biased-random-select 
-                    (list (cons 'alive 5) (cons 'dead 1))))
+                    (list (cons 'alive 3) (cons 'dead 4))))
             (StateMap Posn AliveOrDead))))
+
 (define renderer : LifelikeRenderer (make-2d-renderer colormap-alive-or-dead))
 (run world conways renderer)

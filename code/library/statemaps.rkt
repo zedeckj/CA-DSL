@@ -237,8 +237,13 @@
                 (Posn -1 1) (Posn 0 1) (Posn 1 1) (Posn 2 1)
                 (Posn 2 2) (Posn 2 3)))))
 
+(define-syntax (define-states stx)
+    (syntax-parse stx
+        [(_ states-name:expr (~datum :) type:id (state-val:expr ...+))
+        #'(begin
+            (define-type type (U state-val ...))
+            (define states-name : (Listof type) (list state-val ...)))]))
 
-
-(provide ALIVE-OR-DEAD-STATES rect-custom rect-from overlay/statemaps rect-solid biased-random-select path)
+(provide define-states ALIVE-OR-DEAD-STATES rect-custom rect-from overlay/statemaps rect-solid biased-random-select path)
 
 

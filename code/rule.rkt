@@ -25,23 +25,16 @@
           neighbors)])
     (ormap (lambda ([c : Nonnegative-Integer]) (= c found-count)) counts)))
 
-(define-syntax (parse-count stx)
-  (syntax-parse stx
-    [(_ neighbors:expr neighborhood-len count:expr)
-    ;; Should be moved to static check
-     #'(if
-        (> count neighborhood-len)
-        (raise-syntax-error (format "Count must not exceed size of neighborhood (~a)" neighborhood-len) count)
-        count)]
-    ))
 
 ;; Processes the neighbors
-(define-syntax (parse-counts stx)
+(define-syntax (parse-count stx)
   (syntax-parse stx
     [(_ neighbors:expr _ (~datum all))
      #'(length neighbors)]
-    [(_ neighbors:expr neighborhood-len (count:expr ... ))
-     #'(list (parse-counts neighbors neigborhood-len count) ...)]))
+    [(_ _ neighborhood-len:expr (~datum some))
+     #'(range 1 (add1 neighborhood-len))]
+     [(_ _ _ count:expr)
+      #'(list (ann count Nonnegative-Integer))]))
 
 
 (define-syntax (parse-condition stx)
@@ -51,17 +44,19 @@
            ([count-list : (Listof Nonnegative-Integer) (list count ...)])
          (has-neighbors-in-state? state neighbors count-list))]
     [(_ neighbors:expr neighborhood-len:expr count:expr (~datum in) state:expr)
-     #'(let ([count-var : Nonnegative-Integer count])
-         (has-neighbors-in-state? state neighbors (list count-var)))]
+        #'(has-neighbors-in-state? state neighbors (parse-count neighbors neighborhood-len count))]
     [(_ neighbors:expr neighborhood-len) #'#t]))
 
 
-#;(define-syntax (parse-compound-cond stx)
+(define-syntax (parse-compound-cond stx)
 	(syntax-parse stx
-		[(_ neighbors:expr neighborhood-len:expr cond-tokens1:expr ... (~datum and) cond-tokens2:expr ...)
-			#'(and 
+		[(_ neighbors:expr neighborhood-len:expr 
+          cond-tokens1:expr ... (~datum or) cond-tokens2:expr ...)
+			#'(or 
 					(parse-condition neighbors neighborhood-len cond-tokens1 ...) 
-					(parse-condition neighbors neighborhood-len cond-tokens2 ...))]))
+					(parse-condition neighbors neighborhood-len cond-tokens2 ...))]
+    [(_ neighbors:expr neighborhood-len:expr other:expr ...)
+      #' (parse-condition neighbors neighborhood-len other ...)]))
 
 (define-syntax (parse-transition stx)
   (syntax-parse stx
@@ -96,7 +91,7 @@
      #'(lambda ([in-state : state-type])
          ((parse-transition current-simple-transition)
           in-state
-          (lambda () (parse-condition neighbors neighborhood-len condition-token ...))
+          (lambda () (parse-compound-cond neighbors neighborhood-len condition-token ...))
           ; is a thunk to delay execution for performance gains and short-circuiting
           (parse-clauses neighbors neighborhood-len state-type 
                          (more-simple-transitions condition-token ...) ... clauses ...)))]

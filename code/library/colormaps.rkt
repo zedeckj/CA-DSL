@@ -23,8 +23,8 @@
     ['alive BLACK]
     ['dead WHITE]))
 
-(: make-default-colormap : (All (S) S * -> (ColorMap S)))
-(define (make-default-colormap . states)
+(: make-default-colormap : (All (S) (Listof S) -> (ColorMap S)))
+(define (make-default-colormap states)
   (lambda ([state : Any])
     (: helper : (All (S) (S (Listof S) (Listof Color) -> Color)))
     (define (helper s states colors)
