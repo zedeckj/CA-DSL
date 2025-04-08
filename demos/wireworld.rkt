@@ -30,10 +30,9 @@
 	 ['tail RED]))
            
 
-(define world : (2DWorld WireWorldState) 
-    (simple-2d-world 
-        #:state-map 
-        (overlay/statemaps 
+(define-2d-world world : WireWorldState
+    #:state-map 
+    (overlay/statemaps 
             cartesian-topology  
             (Posn -10 -10) 
             (ann (rect-solid 20 20 'empty) (StateMap Posn WireWorldState))

@@ -24,14 +24,11 @@
         [(_ -> 'empty)]))
 
            
-(define world : (2DWorld PredatorsAndPreyStates) 
-    (simple-2d-world #:state-map 
-        (ann 
-            (rect-from 50 50
-                (biased-random-select 
-                    (ann (list (cons 'prey 3) (cons 'empty 10)) 
-                        (Listof (Pairof PredatorsAndPreyStates Nonnegative-Integer)))))
-            (StateMap Posn PredatorsAndPreyStates))))
+(define-2d-world world : PredatorsAndPreyStates
+     #:state-map 
+        (rect-from 50 50
+            (biased-random-select 
+                (list (cons 'prey 3) (cons 'empty 10)))))
 
 (define renderer : (2DRenderer PredatorsAndPreyStates) 
     (make-2d-renderer (make-default-colormap states)))

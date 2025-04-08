@@ -1,5 +1,7 @@
 #lang typed/racket
-(require "../types.rkt" "../utils.rkt")
+(require "../types.rkt" 
+        "../utils.rkt"
+        (for-syntax syntax/parse))
 (module+ test (require typed/rackunit))
 
 
@@ -86,6 +88,21 @@
                          #:topology [topology cartesian-topology] 
                          #:active-filter [active-filter (lambda (x) #t)]) 
     (World statemap topology active-filter) )
+
+
+(define-syntax (define-2d-world stx)
+    (syntax-parse stx
+    [(_ world:id (~datum :) state-type:id 
+        #:state-map statemap:expr 
+        (~optional (~seq #:active-filter active-filter:expr))
+        (~optional (~seq #:topology topology:expr)))
+    #'(define world : (2DWorld state-type)
+        (simple-2d-world 
+            #:state-map (ann statemap (StateMap Posn state-type))
+            (~? (~@ #:active-filter active-filter))
+            (~? (~@ #:topology topology))))]))
+
+
 ;(: generate-random : )
 
 

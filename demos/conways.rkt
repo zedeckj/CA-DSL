@@ -13,13 +13,10 @@
         [survive 2 3]))
 
 
-(define world : LifelikeWorld 
-    (simple-2d-world #:state-map 
-        (ann 
-            (rect-from 50 50
+(define-2d-world world : AliveOrDead 
+    #:state-map (rect-from 50 50
                 (biased-random-select 
-                    (list (cons 'alive 3) (cons 'dead 4))))
-            (StateMap Posn AliveOrDead))))
+                    (list (cons 'alive 3) (cons 'dead 4)))))
 
 (define renderer : LifelikeRenderer (make-2d-renderer colormap-alive-or-dead))
 (run world conways renderer)
