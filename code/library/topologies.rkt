@@ -78,8 +78,14 @@
     (init-2d-world max-x max-y 
                     (lambda (_) 
                     (list-ref states (random 0 (length states))))))
-(: simple-world : (All (S) (->* (#:statemap [StateMap Posn S]) (#:active-filter [ActiveFilter Posn] #:topology [Topology Posn Posn]) [World Posn Posn S])))
-(define (simple-world #:statemap statemap #:topology [topology (make-finite-cartesian-topology 100 100)] #:active-filter [active-filter (lambda (x) #t)]) (World statemap topology active-filter) )
+(: simple-2d-world : (All (S) (->* (#:state-map [StateMap Posn S]) 
+                                   (#:active-filter [ActiveFilter Posn] 
+                                    #:topology [Topology Posn Posn]) 
+                                    [World Posn Posn S])))
+(define (simple-2d-world #:state-map statemap 
+                         #:topology [topology cartesian-topology] 
+                         #:active-filter [active-filter (lambda (x) #t)]) 
+    (World statemap topology active-filter) )
 ;(: generate-random : )
 
 
