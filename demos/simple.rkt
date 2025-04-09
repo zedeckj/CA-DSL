@@ -14,11 +14,12 @@
 
 (define waves ;; https://conwaylife.com/wiki/OCA:WireWorld
     (moore-rule
-        #:state-type Nonnegative-Integer
+        #:state-type Integer
         [( 1 -> 1)]
-        [(0 -> 1) (1 2 3 4 5 6 7 8 9) in 1]))
+        [(0 -> 0) 0 in 1]
+        [(0 -> 1)]))
 
-(: wave-color-map : (ColorMap Nonnegative-Integer))
+(: wave-color-map : (ColorMap Integer))
 (define (wave-color-map state)
 	(match state
 	 [0 BLACK]
@@ -28,16 +29,16 @@
 	 [4 GREEN]))
            
 
-(define world : (2DWorld Nonnegative-Integer) 
+(define world : (2DWorld Integer) 
     (simple-2d-world 
         #:state-map 
         (overlay/statemaps 
-            (make-wrapping-cartesian-topology 0 20 0 10)
+            (make-wrapping-cartesian-topology 10 30 10 30)
             (Posn 0 0) 
-            (ann (rect-solid 10 10 0) (StateMap Posn Nonnegative-Integer))
-            (Posn 0 0)
-            (rect-solid 1 1 0))))
+            (ann (rect-solid 40 40 0) (StateMap Posn Integer))
+            (Posn 15 15)
+            (rect-solid 1 1 1))))
 
 
-(define renderer : (2DRenderer Nonnegative-Integer) (make-2d-renderer wave-color-map))
+(define renderer : (2DRenderer Integer) (make-2d-renderer wave-color-map))
 (run world waves renderer)
