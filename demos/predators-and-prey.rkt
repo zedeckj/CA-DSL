@@ -23,6 +23,32 @@
         [(predator -> empty) not some in prey]
         [(_ -> empty)]))
 
+(define-2d-world world : PredatorsAndPreyStates
+     #:state-map 
+        (rect-from 50 50
+            (biased-random-select 
+                (list (cons prey 3) (cons empty 10)))))
+
+(define renderer : (2DRenderer PredatorsAndPreyStates) 
+    (make-2d-renderer (make-default-colormap states)))
+(run world predators-and-prey renderer)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 ;; Expansion:
 #;(define predators-and-prey
      (lambda ([state-map : (StateMap Posn PredatorsAndPreyStates)] [topology : (Topology Posn Posn)] [cell : Posn])
@@ -55,13 +81,3 @@
                          (lambda (state) (error (format "No valid transition from state ~a" state)))))))))))))
           in-state))))
            
-
-(define-2d-world world : PredatorsAndPreyStates
-     #:state-map 
-        (rect-from 50 50
-            (biased-random-select 
-                (list (cons prey 3) (cons empty 10)))))
-
-(define renderer : (2DRenderer PredatorsAndPreyStates) 
-    (make-2d-renderer (make-default-colormap states)))
-(run world predators-and-prey renderer)
