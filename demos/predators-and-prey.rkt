@@ -12,7 +12,7 @@
     (for-syntax syntax/parse syntax/macro-testing))
 (module+ test (require typed/rackunit))
 
-(define-states states : PredatorsAndPreyStates (empty prey predator))
+(define-states states : PredatorsAndPreyState (empty prey predator))
 
 (define predators-and-prey
     (moore-rule

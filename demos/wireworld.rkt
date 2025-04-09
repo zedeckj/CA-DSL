@@ -35,14 +35,15 @@
 (define-2d-world world : WireWorldState
     #:state-map 
     (overlay/statemaps 
-        cartesian-topology  
+        cartesian-topology
         (Posn 0 0)
         (ann (rect-solid 50 50 insulator) (StateMap Posn WireWorldState))
-        (Posn 20 20)  
+        (Posn 10 10)  
         (path : WireWorldState (0 0) 
-            [conductor 10 down 3 right 2 down] 
-            [head 2 down] 
-            [conductor 7 left])))
+            [conductor 10 down]
+            [conductor 7 left 3 right 10 down 10 right 20 up 10 left 10 down 
+            20 right 10 up 10 left 10 down]
+            [head 2 down])))
 
 
 (define renderer : (2DRenderer WireWorldState) (make-2d-renderer wireworld-color-map))

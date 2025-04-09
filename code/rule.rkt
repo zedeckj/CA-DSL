@@ -14,7 +14,7 @@
          (cons (hash-ref state-map cur) acc)))
    (list)
    (set-map neighborhood
-            (lambda ([offset : O]) (topology cell offset)))))
+        (lambda ([offset : O]) (topology cell offset)))))
 
 ;; Checks if the number of neighbors in the specified state is one of the provided counts.
 (: has-neighbors-in-state? : (All (S) (-> S (Listof S) (Listof Nonnegative-Integer) Boolean)))

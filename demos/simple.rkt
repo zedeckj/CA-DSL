@@ -15,7 +15,7 @@
 (define waves ;; https://conwaylife.com/wiki/OCA:WireWorld
     (moore-rule
         #:state-type Integer
-        [( 1 -> 1)]
+        [(1 -> 1)]
         [(0 -> 0) 0 in 1]
         [(0 -> 1)]))
 
@@ -33,7 +33,7 @@
     (simple-2d-world 
         #:state-map 
         (overlay/statemaps 
-            (make-wrapping-cartesian-topology 10 30 10 30)
+            (make-wrapping-cartesian-topology 20 25 20 25)
             (Posn 0 0) 
             (ann (rect-solid 40 40 0) (StateMap Posn Integer))
             (Posn 15 15)

@@ -54,6 +54,7 @@
    cartesian-topology
    (lambda ([pos : Posn])
         (Posn (wrap (posn-x pos) x-min x-max) (wrap (posn-y pos) y-min y-max)))))
+        
 (module+ test 
     (define w (make-wrapping-cartesian-topology 0 10 0 10))
     (check-equal? (w (Posn 5 5) (Posn 1 1)) (Posn 6 6))
