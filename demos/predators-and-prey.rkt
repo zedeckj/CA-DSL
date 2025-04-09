@@ -26,11 +26,11 @@
         [(_ -> empty)]))
 
 #| taken from old C project
-B3:1&0:2/
-S0:2/
-{0->2}2:2&12345678:1/
-{2->0}0:1/
-{1->2}8:1
+B3&0/
+S0/
+{0->2}2&12345678/
+{2->0}0/
+{1->2}8
 |#
 
 (define-2d-world world : PredatorsAndPreyState
@@ -61,33 +61,63 @@ S0:2/
 
 ;; Expansion:
 #;(define predators-and-prey
-     (lambda ([state-map : (StateMap Posn PredatorsAndPreyState)] [topology : (Topology Posn Posn)] [cell : Posn])
-       (let ([in-state : PredatorsAndPreyState (hash-ref state-map cell)]
-             [neighbors : (Listof PredatorsAndPreyState) (get-neighbors cell state-map topology (moore-neighborhood))])
-         ((lambda ([in-state : PredatorsAndPreyState])
-            ((lambda (cur-state cond fallback) (if (and (eq? cur-state prey) (cond)) predator (fallback cur-state)))
+     (lambda ([state-map : (StateMap Posn PredatorsAndPreyStates)]
+              [topology : (Topology Posn Posn)]
+              [cell : Posn])
+       (let ([in-state : PredatorsAndPreyStates (hash-ref state-map cell)]
+             [neighbors
+              :
+              (Listof PredatorsAndPreyStates)
+              (get-neighbors cell state-map topology (moore-neighborhood))])
+         ((lambda ([in-state : PredatorsAndPreyStates])
+            ((lambda (cur-state cond fallback)
+               (if (and (eq? cur-state prey) (cond)) predator (fallback cur-state)))
              in-state
              (lambda () (has-neighbors-in-state? prey neighbors (list (length neighbors))))
-             (lambda ([in-state : PredatorsAndPreyState])
-               ((lambda (cur-state cond fallback) (if (and (eq? cur-state prey) (cond)) prey (fallback cur-state)))
+             (lambda ([in-state : PredatorsAndPreyStates])
+               ((lambda (cur-state cond fallback)
+                  (if (and (eq? cur-state prey) (cond)) prey (fallback cur-state)))
                 in-state
                 (lambda ()
-                  (and (not (has-neighbors-in-state? predator neighbors (range 1 (add1 (set-count (moore-neighborhood))))))
-                       (not (has-neighbors-in-state? empty neighbors (list (length neighbors))))))
-                (lambda ([in-state : PredatorsAndPreyState])
-                  ((lambda (cur-state cond fallback) (if (and (eq? cur-state empty) (cond)) prey (fallback cur-state)))
+                  (and (not
+                           (has-neighbors-in-state?
+                            predator
+                            neighbors
+                            (range 1 (add1 (set-count (moore-neighborhood))))))
+                          (not
+                           (has-neighbors-in-state? empty neighbors (list (length neighbors))))))
+                (lambda ([in-state : PredatorsAndPreyStates])
+                  ((lambda (cur-state cond fallback)
+                     (if (and (eq? cur-state empty) (cond)) prey (fallback cur-state)))
                    in-state
                    (lambda ()
-                     (and (has-neighbors-in-state? prey neighbors (range 1 (add1 (set-count (moore-neighborhood)))))
-                             (not (has-neighbors-in-state? predator neighbors (range 1 (add1 (set-count (moore-neighborhood))))))))
-                   (lambda ([in-state : PredatorsAndPreyState])
-                     ((lambda (cur-state cond fallback) (if (and (eq? cur-state predator) (cond)) empty (fallback cur-state)))
+                     (and (has-neighbors-in-state?
+                              prey
+                              neighbors
+                              (range 1 (add1 (set-count (moore-neighborhood)))))
+                             (not
+                              (has-neighbors-in-state?
+                               predator
+                               neighbors
+                               (range 1 (add1 (set-count (moore-neighborhood))))))))
+                   (lambda ([in-state : PredatorsAndPreyStates])
+                     ((lambda (cur-state cond fallback)
+                        (if (and (eq? cur-state predator) (cond))
+                          empty
+                          (fallback cur-state)))
                       in-state
-                      (lambda () (not (has-neighbors-in-state? prey neighbors (range 1 (add1 (set-count (moore-neighborhood)))))))
-                      (lambda ([in-state : PredatorsAndPreyState])
-                        ((lambda (cur-state cond fallback) (if (cond) empty (fallback cur-state)))
+                      (lambda ()
+                        (not
+                         (has-neighbors-in-state?
+                          prey
+                          neighbors
+                          (range 1 (add1 (set-count (moore-neighborhood)))))))
+                      (lambda ([in-state : PredatorsAndPreyStates])
+                        ((lambda (cur-state cond fallback)
+                           (if (cond) empty (fallback cur-state)))
                          in-state
                          (lambda () #t)
-                         (lambda (state) (error (format "No valid transition from state ~a" state)))))))))))))
+                         (lambda (state)
+                           (error (format "No valid transition from state ~a" state)))))))))))))
           in-state))))
            
