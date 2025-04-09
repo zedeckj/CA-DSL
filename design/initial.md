@@ -107,13 +107,15 @@ We'd like to add syntactic sugar and built in functions to make defintions like 
 ## Grammars and Signatures
 
 ```
-<RULE> ::= (rule <NEIGHBORHOOD> <DEFAULT> <BRANCH> ... )
+<RULE> ::= 
+        (rule 
+                #:neighborhood <expr>
+                #:state-type <type>
+                #:cell-type <type>
+                #:offset-type <type>
+                <BRANCH> ...+ )
 
-<NEIGHBORHOOD> ::= 
-               | #:neighborhood <INLINE-NEIGHBORHOOD>
 			
-<DEFAULT> ::= 
-           | #:default <expr>
 
 <BRANCH> ::= [<TRANSITION> <COND>]
         | [<TRANSITION>]
@@ -121,17 +123,12 @@ We'd like to add syntactic sugar and built in functions to make defintions like 
         | [default <expr>]
 
 
-(rule
-        [default (x) (+ x 1)]) // if even
-
 <TRANSITION> ::= (<STATE> -> <STATE>)
-             | (* -> <STATE>)
+             | (_ -> <STATE>)
              | (<id>)
 
 <COND> ::= <expr>
-        | <EXC?> <COUNTS> in <STATE>
-        | <EXC?> <COUNTS> from <INLINE-NEIGHBORHOOD> are <STATE> 
-        | <EXC?> <NEIGHBOR> is <STATE>
+        | <COUNTS> in <STATE>
         | <COND> and <COND>
         | <COND> or <COND>
         | not <COND>
@@ -140,27 +137,16 @@ We'd like to add syntactic sugar and built in functions to make defintions like 
 <COUNTS> ::= (<natural> <natural> ...)
          | <natural>
          | none
-         | any
+         | some
          | all
 
-<INLINE-NEIGHBORHOOD> ::= <list of NEIGHBOR>
-
-<NEIGHBOR> ::= <OFFSET>
-            | absolute <CELL>
-
-<EXC?> ::=
-        | except
 
 <STATE> ::= <expr>
 
 <CELL> ::= <expr>
 
-
-
 <OFFSET> ::= <expr>
 
-
-<INLINE-NEIGHBORHOOD> ::= <list>
 ```
 
 ```

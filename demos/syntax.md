@@ -9,16 +9,13 @@
 			
 
 <BRANCH> ::= [<TRANSITION> <COND>]
-        | [<TRANSITION>]
-        | [<STATE> <expr>]
-        | [default <expr>]
 
 
 <TRANSITION> ::= (<STATE> -> <STATE>)
              | (_ -> <STATE>)
              | (<id>)
 
-<COND> ::= <expr>
+<COND> ::=
         | <COUNTS> in <STATE>
         | <COND> and <COND>
         | <COND> or <COND>
