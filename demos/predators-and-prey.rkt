@@ -14,20 +14,30 @@
 
 (define-states states : PredatorsAndPreyState (empty prey predator))
 
+
 (define predators-and-prey
     (moore-rule
         #:state-type PredatorsAndPreyState
+        [(empty -> prey) 3 in prey and 0 in predator]
+        [(prey -> prey) 0 in predator]
+        [(empty -> predator) 2 in predator and some in prey]
+        [(predator -> predator) some in prey]
         [(prey -> predator) all in prey]
-        [(prey -> prey) not some in predator]
-        [(empty -> prey) some in prey and not some in predator]
-        [(predator -> empty) not some in prey]
         [(_ -> empty)]))
+
+#| taken from old C project
+B3:1&0:2/
+S0:2/
+{0->2}2:2&12345678:1/
+{2->0}0:1/
+{1->2}8:1
+|#
 
 (define-2d-world world : PredatorsAndPreyState
      #:state-map 
         (rect-from 50 50
             (biased-random-select 
-                (list (cons prey 3) (cons empty 10)))))
+                (list (cons prey 2) (cons predator 1) (cons empty 5)))))
 
 (define renderer : (2DRenderer PredatorsAndPreyState) 
     (make-2d-renderer (make-default-colormap states)))
