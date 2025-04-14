@@ -49,11 +49,11 @@
 	(syntax-parse stx
 		[(_ info-bundle:expr cond-tokens1:expr ... operator:bin-op cond-tokens2:expr ...)
 			#'(operator 
-					(parse-compound-cond info-bundle cond-tokens1 ...) 
-					(parse-compound-cond info-bundle cond-tokens2 ...))]
+					(parse-condition info-bundle cond-tokens1 ...) 
+					(parse-condition info-bundle cond-tokens2 ...))]
 
 		[(_ info-bundle:expr (~datum not) cond-tokens:expr ...)
-			#'(not (parse-compound-cond info-bundle cond-tokens ...) )]
+			#'(not (parse-condition info-bundle cond-tokens ...) )]
 
     [(_ (neighbors:expr neighborhood-len:expr state-type:id) (count:expr ...+) (~datum in) state:expr)
      #'(let
@@ -100,7 +100,7 @@
             current-simple-transition 
             cur-state 
             info-bundle
-            (parse-compound-cond info-bundle condition-token ...)
+            (parse-condition info-bundle condition-token ...)
             (parse-clauses 
                 info-bundle
                 cur-state 
