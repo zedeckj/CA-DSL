@@ -70,41 +70,39 @@
 ;; 
 (define-syntax (parse-transition stx)
   (syntax-parse stx
-    [(_ ((~datum _) (~datum ->) out-state:expr))
-     #'(lambda (cur-state cond fallback) 
-         (if cond out-state (fallback cur-state)))]
-    [(_ (in-state (~datum ->) out-state))
-     #'(lambda (cur-state cond fallback)
-         (if (and (eq? cur-state in-state) cond) 
-            out-state 
-            (fallback cur-state)))]))
+    [(_ ((~datum _) (~datum ->) to-state:expr) _ condition:expr fallback:expr)
+     #'(if condition to-state fallback)]
+    [(_ (from-state (~datum ->) to-state) cur-state:expr condition:expr fallback:expr)
+     #'(if (and (eq? cur-state from-state) condition) 
+            to-state 
+            fallback)]))
 
 ;; Syntax -> Listof Syntax
 (define-for-syntax (deconstruct-transition stx)
   (syntax-parse stx
-    [(in-state:expr (~datum ->) out-state:expr) (list stx)]
-    [(in-state:expr (~datum ->) out-state:expr more:expr ...+)
+    [(from-state:expr (~datum ->) to-state:expr) (list stx)]
+    [(from-state:expr (~datum ->) to-state:expr more:expr ...+)
      (append 
-      (deconstruct-transition #'(out-state more ...))
-      (list #'(in-state -> out-state)))]))
+      (deconstruct-transition #'(to-state more ...))
+      (list #'(from-state -> to-state)))]))
 
 ;; 
 (define-syntax (parse-clauses stx)
   (syntax-parse stx
-    [(_ neighbors:id neighborhood-len:expr state-type:id [transition:expr condition-token:expr ...] 
-              clauses ...)
+    [(_ neighbors:id neighborhood-len:expr state-type:id cur-state:expr [transition:expr condition-token:expr ...] 
+               clauses ...)
      (define/syntax-parse 
        (current-simple-transition more-simple-transitions ...) 
        (deconstruct-transition #'transition))
-     #'(lambda ([in-state : state-type])
-         ((parse-transition current-simple-transition)
-          in-state
-          (parse-compound-cond neighbors neighborhood-len condition-token ...)
-          ; is a thunk to delay execution for performance gains and short-circuiting
-          (parse-clauses neighbors neighborhood-len state-type 
-                         (more-simple-transitions condition-token ...) ... clauses ...)))]
+     #'(parse-transition 
+            current-simple-transition 
+            cur-state 
+            (parse-compound-cond neighbors neighborhood-len condition-token ...)
+            (parse-clauses neighbors neighborhood-len state-type 
+                         cur-state (more-simple-transitions condition-token ...) ... clauses ...)
+            )]
             
-    [(_ neighbors _ _)
+    [(_ neighbors _ _ _)
      #'(lambda (state)
          (error (format "No valid transition from state ~a" state)))]))
 
@@ -128,7 +126,7 @@
             [cell : cell-type]) 
          (let ([in-state : state-type (hash-ref state-map cell)]
                [neighbors : (Listof state-type) (get-neighbors cell state-map topology neighborhood)])
-           ((parse-clauses neighbors (set-count neighborhood) state-type clauses ...) in-state)))]))
+           (parse-clauses neighbors (set-count neighborhood) state-type in-state clauses ...)))]))
 
 ;; Shorthand macro that expands to `rule` for the common usecase of making a Rule with Posn cell and offset types, and a neighborhood consisting of the Moore neighborhood with a radius of 1
 (define-syntax (moore-rule stx)
