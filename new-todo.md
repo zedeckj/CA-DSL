@@ -19,3 +19,9 @@ Rule Changes:
 - Neighbor count negation `except`
 - Arbitrary function call syntax `fn`
 
+
+4/14/25
+- Sort out "WARNING: duplicate tag: (dep ((lib "typed/2htdp/universe.rkt") big-bang))"
+- Building scribblings to make sure it works
+- Delve into library, check purpose statemements and clean up code
+- If possible: fix weird type behavior when constructing statemaps 
