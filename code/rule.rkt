@@ -1,6 +1,6 @@
 #lang typed/racket
 (require "types.rkt" "library/topologies.rkt" "library/neighborhoods.rkt" "examples.rkt" racket/syntax syntax/parse
-         (for-syntax racket/syntax syntax/parse))
+         racket/bool (for-syntax racket/syntax syntax/parse))
 (module+ test (require syntax/macro-testing typed/rackunit "examples.rkt")
 (require syntax/macro-testing))
 
@@ -26,7 +26,7 @@
     (ormap (lambda ([c : Nonnegative-Integer]) (= c found-count)) counts)))
 
 
-;; Processes the neighbors
+;; Parses a number or DSL keyword which is specified as an allowed number of neighbors
 (define-syntax (parse-count stx)
   (syntax-parse stx
     [(_ neighbors:expr _ (~datum all))
@@ -37,46 +37,47 @@
       #'(list (ann count Nonnegative-Integer))]))
 
 
+
+(begin-for-syntax
+  (define-syntax-class bin-op
+  #:description "binary operator"
+  (pattern (~or (~datum and) (~datum or) (~datum nand) 
+                (~datum implies) (~datum xor) (~datum nor)))))
+
+;; Translates the condition portion of a clause into an expression that will evaluate into a boolean
 (define-syntax (parse-condition stx)
-  (syntax-parse stx
-    [(_ neighbors:expr neighborhood-len:expr (count:expr ...+) (~datum in) state:expr)
+	(syntax-parse stx
+		[(_ info-bundle:expr cond-tokens1:expr ... operator:bin-op cond-tokens2:expr ...)
+			#'(operator 
+					(parse-compound-cond info-bundle cond-tokens1 ...) 
+					(parse-compound-cond info-bundle cond-tokens2 ...))]
+
+		[(_ info-bundle:expr (~datum not) cond-tokens:expr ...)
+			#'(not (parse-compound-cond info-bundle cond-tokens ...) )]
+
+    [(_ (neighbors:expr neighborhood-len:expr state-type:id) (count:expr ...+) (~datum in) state:expr)
      #'(let
            ([count-list : (Listof Nonnegative-Integer) (list count ...)])
-         (has-neighbors-in-state? state neighbors count-list))]
-    [(_ neighbors:expr neighborhood-len:expr count:expr (~datum in) state:expr)
-        #'(has-neighbors-in-state? state neighbors (parse-count neighbors neighborhood-len count))]
-    [(_ neighbors:expr neighborhood-len) #'#t]))
+         (has-neighbors-in-state? (ann state state-type) neighbors count-list))]
+    [(_ (neighbors:expr neighborhood-len:expr state-type:id) count:expr (~datum in) state:expr)
+        #'(has-neighbors-in-state? (ann state state-type) neighbors (parse-count neighbors neighborhood-len count))]
+    [(_ _) #'#t]))
 
-
-(define-syntax (parse-compound-cond stx)
-	(syntax-parse stx
-		[(_ neighbors:expr neighborhood-len:expr 
-          cond-tokens1:expr ... (~datum or) cond-tokens2:expr ...)
-			#'(or 
-					(parse-compound-cond neighbors neighborhood-len cond-tokens1 ...) 
-					(parse-compound-cond neighbors neighborhood-len cond-tokens2 ...))]
-		[(_ neighbors:expr neighborhood-len:expr 
-          cond-tokens1:expr ... (~datum and) cond-tokens2:expr ...)
-			#'(and 
-					(parse-compound-cond neighbors neighborhood-len cond-tokens1 ...) 
-					(parse-compound-cond neighbors neighborhood-len cond-tokens2 ...))]
-		[(_ neighbors:expr neighborhood-len:expr 
-        (~datum not) cond-tokens:expr ...)
-			#'(not 
-					(parse-compound-cond neighbors neighborhood-len cond-tokens ...) )]
-    [(_ neighbors:expr neighborhood-len:expr other:expr ...)
-      #' (parse-condition neighbors neighborhood-len other ...)]))
-
-;; 
-(define-syntax (parse-transition stx)
+;; Composes a clause by parsing a transition expression of the form (a -> b) into roughly 
+;; (if (and (eq? cur-state a) condition) b fallback), while being given a condition that has already 
+;; been parsed into an expression that will evaluate into a boolean. 
+(define-syntax (compose-clause stx)
   (syntax-parse stx
-    [(_ ((~datum _) (~datum ->) to-state:expr) _ condition:expr fallback:expr)
-     #'(if condition to-state fallback)]
-    [(_ (from-state (~datum ->) to-state) cur-state:expr condition:expr fallback:expr)
-     #'(if (and (eq? cur-state from-state) condition) 
-            to-state 
+    [(_ ((~datum _) (~datum ->) to-state:expr) _ (_ _ state-type:id) condition:expr fallback:expr)
+     #'(if condition (ann to-state state-type) fallback)]
+    [(_ (from-state:expr (~datum ->) to-state:expr) cur-state:expr (_ _ state-type:id) condition:expr fallback:expr)
+     #'(if (and (eq? cur-state (ann from-state state-type)) condition) 
+            (ann to-state state-type) 
             fallback)]))
 
+;; Helper function for parse-clauses that implements functionality for chained state transitions 
+;; such as #'(a -> b -> c) by deconstructing this syntax into a list of binary transitions 
+;; (so the above example becomes [#'(a -> b) #'(b -> c)])
 ;; Syntax -> Listof Syntax
 (define-for-syntax (deconstruct-transition stx)
   (syntax-parse stx
@@ -86,25 +87,29 @@
       (deconstruct-transition #'(to-state more ...))
       (list #'(from-state -> to-state)))]))
 
-;; 
+;; parse-clauses recursively expands each branch given to the rule macro as nested if expressions
+;; which evaluate to the "out" state for a cell  
 (define-syntax (parse-clauses stx)
   (syntax-parse stx
-    [(_ neighbors:id neighborhood-len:expr state-type:id cur-state:expr [transition:expr condition-token:expr ...] 
+    [(_ info-bundle:expr cur-state:expr [transition:expr condition-token:expr ...] 
                clauses ...)
      (define/syntax-parse 
        (current-simple-transition more-simple-transitions ...) 
        (deconstruct-transition #'transition))
-     #'(parse-transition 
+     #'(compose-clause 
             current-simple-transition 
             cur-state 
-            (parse-compound-cond neighbors neighborhood-len condition-token ...)
-            (parse-clauses neighbors neighborhood-len state-type 
-                         cur-state (more-simple-transitions condition-token ...) ... clauses ...)
+            info-bundle
+            (parse-compound-cond info-bundle condition-token ...)
+            (parse-clauses 
+                info-bundle
+                cur-state 
+                (more-simple-transitions condition-token ...) ... 
+                clauses ...)
             )]
             
-    [(_ neighbors _ _ _)
-     #'(lambda (state)
-         (error (format "No valid transition from state ~a" state)))]))
+    [(_ _ cur-state)
+     #'(error (format "No valid transition from state ~a" cur-state))]))
 
 
 ;; Main macro for declaring a Rule for a cellular automata in the most general case the DSL supports
@@ -126,7 +131,7 @@
             [cell : cell-type]) 
          (let ([in-state : state-type (hash-ref state-map cell)]
                [neighbors : (Listof state-type) (get-neighbors cell state-map topology neighborhood)])
-           (parse-clauses neighbors (set-count neighborhood) state-type in-state clauses ...)))]))
+           (parse-clauses (neighbors (set-count neighborhood) state-type) in-state clauses ...)))]))
 
 ;; Shorthand macro that expands to `rule` for the common usecase of making a Rule with Posn cell and offset types, and a neighborhood consisting of the Moore neighborhood with a radius of 1
 (define-syntax (moore-rule stx)

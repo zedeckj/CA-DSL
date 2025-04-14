@@ -18,11 +18,11 @@
 (define predators-and-prey
     (moore-rule
         #:state-type PredatorsAndPreyState
-        [(empty -> prey) 3 in prey and 0 in predator]
+        [(empty -> prey) 3 in prey andl 0 in predator]
+        [(prey -> predator) all in prey]
         [(prey -> prey) 0 in predator]
         [(empty -> predator) 2 in predator and some in prey]
         [(predator -> predator) some in prey]
-        [(prey -> predator) all in prey]
         [(_ -> empty)]))
 
 
@@ -63,7 +63,7 @@ S0/
 #;   (define predators-and-prey
      (lambda ([state-map : (StateMap Posn PredatorsAndPreyState)] [topology : (Topology Posn Posn)] [cell : Posn])
        (let ([in-state : PredatorsAndPreyState (hash-ref state-map cell)]
-                 [neighbors : (Listof PredatorsAndPreyState) (get-neighbors cell state-map topology (moore-neighborhood))])
+             [neighbors : (Listof PredatorsAndPreyState) (get-neighbors cell state-map topology (moore-neighborhood))])
          (if (and (eq? in-state empty)
                           (and (has-neighbors-in-state? prey neighbors (list (ann 3 Nonnegative-Integer)))
                                    (has-neighbors-in-state? predator neighbors (list (ann 0 Nonnegative-Integer)))))
@@ -79,7 +79,7 @@ S0/
                  predator
                  (if (and (eq? in-state prey) (has-neighbors-in-state? prey neighbors (list (length neighbors))))
                    predator
-                   (if #t empty (lambda (state) (error (format "No valid transition from state ~a" state))))))))))))
+                   (if #t empty (error (format "No valid transition from state ~a" state)))))))))))
 
 
 
