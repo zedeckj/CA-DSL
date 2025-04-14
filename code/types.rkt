@@ -40,8 +40,6 @@ Meaning for parametric type variables:
 ;; Represents what color should be used to represent a state
 (define-type (ColorMap S) (S -> Color))
 
-;; A function which, when given a StateMap and Topology, creates a new StateMap representing a time stepped instance of the World's StateMap
-#; (define-type (Rule C O S) ((StateMap C S) (Topology C O) -> (StateMap C S)))
 
 ;; A function which, when given a StateMap, Topology, and Cell, returns the new State for that Cell
 (define-type (Rule C O S) ((StateMap C S) (Topology C O) C -> S))

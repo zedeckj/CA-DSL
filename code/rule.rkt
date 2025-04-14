@@ -14,7 +14,7 @@
          (cons (hash-ref state-map cur) acc)))
    (list)
    (set-map neighborhood
-        (lambda ([offset : O]) (topology cell offset)))))
+            (lambda ([offset : O]) (topology cell offset)))))
 
 ;; Checks if the number of neighbors in the specified state is one of the provided counts.
 (: has-neighbors-in-state? : (All (S) (-> S (Listof S) (Listof Nonnegative-Integer) Boolean)))
@@ -67,19 +67,17 @@
     [(_ neighbors:expr neighborhood-len:expr other:expr ...)
       #' (parse-condition neighbors neighborhood-len other ...)]))
 
+;; 
 (define-syntax (parse-transition stx)
   (syntax-parse stx
     [(_ ((~datum _) (~datum ->) out-state:expr))
      #'(lambda (cur-state cond fallback) 
-         (if (cond) out-state (fallback cur-state)))]
+         (if cond out-state (fallback cur-state)))]
     [(_ (in-state (~datum ->) out-state))
      #'(lambda (cur-state cond fallback)
-         (if (and (eq? cur-state in-state) (cond)) 
+         (if (and (eq? cur-state in-state) cond) 
             out-state 
             (fallback cur-state)))]))
-
-;;(transition in-state other-condition fallback-callback)
-;;(lambda (in-state) (transition (in-state other-conditions fallback-callback))))
 
 ;; Syntax -> Listof Syntax
 (define-for-syntax (deconstruct-transition stx)
@@ -90,6 +88,7 @@
       (deconstruct-transition #'(out-state more ...))
       (list #'(in-state -> out-state)))]))
 
+;; 
 (define-syntax (parse-clauses stx)
   (syntax-parse stx
     [(_ neighbors:id neighborhood-len:expr state-type:id [transition:expr condition-token:expr ...] 
@@ -100,7 +99,7 @@
      #'(lambda ([in-state : state-type])
          ((parse-transition current-simple-transition)
           in-state
-          (lambda () (parse-compound-cond neighbors neighborhood-len condition-token ...))
+          (parse-compound-cond neighbors neighborhood-len condition-token ...)
           ; is a thunk to delay execution for performance gains and short-circuiting
           (parse-clauses neighbors neighborhood-len state-type 
                          (more-simple-transitions condition-token ...) ... clauses ...)))]
@@ -110,7 +109,11 @@
          (error (format "No valid transition from state ~a" state)))]))
 
 
-;; Main macro for declaring a Rule for a cellular automata
+;; Main macro for declaring a Rule for a cellular automata in the most general case the DSL supports
+;; Takes in keyword arguments for types, the neighborhood, and at least one conditional transition 
+;; ("clauses"), and returns syntax for a lambda that takes in a statemap, a topology, and a cell, and 
+;; returns the resulting state for that cell after a time step. (This type is defined as a Rule). 
+;; Syntax Custom -> Syntax Rule
 (define-syntax (rule stx)
   (syntax-parse stx
     [(_
@@ -126,10 +129,8 @@
          (let ([in-state : state-type (hash-ref state-map cell)]
                [neighbors : (Listof state-type) (get-neighbors cell state-map topology neighborhood)])
            ((parse-clauses neighbors (set-count neighborhood) state-type clauses ...) in-state)))]))
-; Pass down the length of the full neighborhood to enable runtime checks of conditions which specify a number of cells that doesn't make sense
 
-
-;; Shorthand macro for the common usecase of making a Rule with Posn cell and offset types, and a neighborhood consisting of the Moore neighborhood with a radius of 1
+;; Shorthand macro that expands to `rule` for the common usecase of making a Rule with Posn cell and offset types, and a neighborhood consisting of the Moore neighborhood with a radius of 1
 (define-syntax (moore-rule stx)
 	(syntax-parse stx
 		[(_
@@ -142,7 +143,7 @@
 			 #:neighborhood (moore-neighborhood)
 			 clauses ...)]))
 
-;; Shorthand for making a rule with alive and dead states with a default state of dead and uses a moore neighborhood with cells and offsets represented as Posn
+;; Shorthand that expands to `rule` for making a rule with alive and dead states with a default state of dead and uses a moore neighborhood with cells and offsets represented as Posn
 (define-syntax (lifelike stx)
   (syntax-parse stx
     [(_
