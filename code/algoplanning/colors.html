@@ -1,0 +1,130 @@
+<title> Colors</title>
+<h1>hi</h1>
+
+<div id="root"></div>
+<div style="background-color: rgb(0,255,255)"></div>
+<input type="text" id="input" />
+<script defer>
+    // const start = 0.78
+    // const gamma = 0.618033988749895
+    // const n = 30
+
+    const root = document.getElementById("root")
+
+    // let cur = start
+    // for (const i in [...Array(n).keys()]){
+    //     const el = document.createElement("p")
+    //     el.innerText = ".                         ."
+    //     el.style.backgroundColor = `hsl(${cur * 360},100%,55%)`
+    //     root.appendChild(el)
+    //     cur = (cur +gamma) % 1
+    // }
+
+    const wrapPtList = (pattern) => {
+        (startVertex, scale) => {
+            oppVertex = startVertex.map(v => v+scale)
+            halfVertex = startVertex.map((v,i) => 0.5 * (v+endVertex[i]))
+            return pattern(startVertex,oppVertex,halfVertex).map(a=> a.map((v,i) => v[i]))
+        }
+    }
+
+    function* patternToPoints(pattern,offset,scale){
+        for(const item of pattern){
+            yield item.map(v => v*scale).map((v,i) => v+offset[i])
+        }
+    }
+
+    const cubeFaces = [
+        [0, 0.5, 0.5], [1, 0.5, 0.5], 
+        [0.5, 0, 0.5], [0.5, 1, 0.5],
+        [0.5, 0.5, 0], [0.5, 0.5, 1]
+    ]
+
+    const cubeVertices = [
+        [0, 0, 0], [1, 1, 1], // Black - White
+        [1, 0, 0], [0, 1, 1], // Red - Cyan 
+        [0, 1, 0], [1, 0, 1], // Green - Magenta
+        [0, 0, 1], [1, 1, 0] // Blue - Yell1w
+    ]
+    
+    const cubeEdgeMidpoints = [
+        [0, 0.5, 0], [1, 0.5, 1],
+        [0, 0, 0.5], [1, 1, 0.5],
+        [0.5, 0, 1], [0.5, 1, 0],
+        [0, 0.5, 1], [1, 0.5, 0],
+        [0, 1, 0.5], [1, 0, 0.5],
+    ]
+    
+    function* pointerGenerator(startVertex, scale) {
+        yield* patternToPoints(cubeFaces, startVertex, scale)
+        yield startVertex.map(v5 => v5+0.5*scale) //center of cube
+        yield* patternToPoints(cubeEdgeMidpoints, startVertex, scale)
+        const generators = [...patternToPoints(cubeVertices, startVertex, 0.5*scale)].map(s => pointerGenerator(s, scale*0.5))
+        console.log("p2p", [...patternToPoints(cubeEdgeMidpoints, startVertex, scale)])
+        while(true){
+            for(const gen of generators){
+                let x = gen.next()
+                console.log("gen", x)
+                yield x.value
+            }
+        }
+    }
+
+    function* genPointsHelper() {
+        for (const p of cubeVertices) yield p
+        yield* pointerGenerator([0,0,0], 1)
+        
+    }
+    
+    /**
+     * Recursively generate the given number of points in a pattern that semi-evenly spaces points within a unit cube
+     */
+    function genPoints(n){
+        const res = []
+        const gen = genPointsHelper()
+        while(res.length < n){
+            res.push(gen.next().value)
+        }
+        return res
+    }
+    console.log("foo")
+    console.log(genPoints(12))
+    function shuffleArray(array) {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]]; // Swap elements
+  }
+  return array;
+}
+
+    document.getElementById("input").addEventListener("input", e => {
+        n = +e.target.value
+        console.log(genPoints(n))
+        //pts = genPoints(n).map(v => [v[0]*360, v[1]*100, v[2]*100])
+        pts = genPoints(n).map(v => [
+            v[0]*255,
+            Math.pow(v[1],1.25)*255,
+            v[2]*255].map(Math.round))
+        root.innerHTML = ""
+        //colors = pts.map(([h,s,l]) => `hsl(${h},${s}%,${l}%)` )
+        colors = pts.map(([r,g,b]) => `rgb(${r},${g},${b})`)
+        //colors = shuffleArray(colors)
+        for (const color of colors) {
+            const el = document.createElement("p")
+            el.innerText = color
+            el.style.backgroundColor = color
+            root.appendChild(el)
+        }
+
+    })
+    /*
+    0 0 0 
+    255 255 255
+    255 0 0
+    0 255 0
+    0 0 255
+    125 125 0
+    0 
+    */
+
+</script>

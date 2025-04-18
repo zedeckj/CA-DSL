@@ -4,7 +4,8 @@
 
 (define deps '("base"
                 "rackunit-lib"
-                "2htdp-typed"))
+                "2htdp-typed"
+                "typed/racket/stream"))
 
 (define license 'MIT)
 
