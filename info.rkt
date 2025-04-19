@@ -13,6 +13,7 @@
                 "scheme-lib"
                 "at-exp-lib"
                 "htdp-lib"
+                "htdp-doc"
                 "scheme-lib"))
 
 (define license 'MIT)
