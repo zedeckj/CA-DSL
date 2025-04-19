@@ -17,6 +17,7 @@
 (define TRANSPARENT (make-color 0 0 0 0))
 (define COLOR_LIST (list WHITE BLACK RED GREEN BLUE YELLOW PURPLE PINK ORANGE))
 
+;; A predefined colormap for AliveOrDead states
 (: colormap-alive-or-dead : (ColorMap AliveOrDead))
 (define (colormap-alive-or-dead state)
   (match state

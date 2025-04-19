@@ -111,6 +111,21 @@
     [(_ _ cur-state)
      #'(error (format "No valid transition from state ~a" cur-state))]))
 
+;; Example Expansion
+;; For parsing 
+#;[(1 -> 1)] #;[(0 -> 0) 0 in 1] #;[(0 -> 1)] 
+
+#;(parse-clauses ((list 1 2 3) 3 Integer) 0
+        [(1 -> 1)]
+        [(0 -> 0) 0 in 1]
+        [(0 -> 1)])
+
+#;(if (and (eq? 0 (ann 1 Integer)) #t)
+     (ann 1 Integer)
+     (if (and (eq? 0 (ann 0 Integer)) (has-neighbors-in-state? (ann 1 Integer) (list 1 2 3) (list (ann 0 Nonnegative-Integer))))
+       (ann 0 Integer)
+       (if (and (eq? 0 (ann 0 Integer)) #t) (ann 1 Integer) (error (format "No valid transition from state ~a" 0)))))
+
 
 ;; Main macro for declaring a Rule for a cellular automata in the most general case the DSL supports
 ;; Takes in keyword arguments for types, the neighborhood, and at least one conditional transition 

@@ -3,9 +3,17 @@
 (define name "ca-dsl")
 
 (define deps '("base"
-                "rackunit-lib"
+                "rackunit-typed"
                 "2htdp-typed"
-                "typed/racket/stream"))
+                "typed-racket-lib"
+                "typed-racket-stream"
+                "racket-doc"
+                "rackunit-lib"
+                "scribble-lib"
+                "scheme-lib"
+                "at-exp-lib"
+                "htdp-lib"
+                "scheme-lib"))
 
 (define license 'MIT)
 

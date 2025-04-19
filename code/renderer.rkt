@@ -47,7 +47,7 @@
         (text "x" (cast (floor (/ cell-width-px 2)) Positive-Byte) UNDEFINED-COLOR)))
 
 
-;; Creates an image for a Cell with the specified 
+;; Creates an image for a Cell with the specified color 
   (: cell-img : (Color -> Image))
   (define (cell-img color )  
     (overlay

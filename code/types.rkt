@@ -8,11 +8,13 @@
     ([x : Integer] 
     [y : Integer]) #:type-name Posn #:transparent)
 
+;; Component-wise addition of two positions
 (: posn-add : Posn Posn -> Posn)
 (define (posn-add posn1 posn2)
   (Posn (+ (posn-x posn1) (posn-x posn2))
         (+ (posn-y posn1) (posn-y posn2))))
 
+;; Produces a new Posn by multiplying a Scalar to a Posn's coordinates
 (: posn-scale : Integer Posn -> Posn)
 (define (posn-scale n posn)
   (Posn (* n (posn-x posn))
@@ -87,10 +89,7 @@ Meaning for parametric type variables:
 ;; A predefined "Lifelike" Renderer, which is a 2DRenderer for the AliveOrDead state.
 (define-type LifelikeRenderer (2DRenderer AliveOrDead))
 
-;; A union types of different descriptions of Direction used for drawing paths 
-(define-type Direction (U 'left 'right 'down 'up))
-
 ; TODO Is there a provide-all-out for types?
 (provide StateMap Topology 2DRenderer 2DWorld ActiveFilter ColorMap Rule Renderer 
     AliveOrDead define-states alive dead World (struct-out world) (struct-out posn) Neighborhood Posn 
-    LifelikeRule LifelikeWorld LifelikeRenderer Direction posn-add posn-scale)
+    LifelikeRule LifelikeWorld LifelikeRenderer posn-add posn-scale)

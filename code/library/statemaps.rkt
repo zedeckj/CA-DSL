@@ -16,12 +16,23 @@
 
 (module+ test (require typed/rackunit))
 
-(define ALIVE-OR-DEAD-STATES : (Listof AliveOrDead) (list 'dead 'alive))
+;; A union types of different descriptions of Direction used for drawing paths 
+(define-type Direction (U 'left 'right 'down 'up))
+
+(define direction-offset
+    (hash 'up (Posn 0 -1)
+        'down (Posn 0 1)
+        'left (Posn -1 0)
+        'right (Posn 1 0)))
+
+(: direction->offset : (-> Direction Posn))
+(define (direction->offset d) (hash-ref direction-offset d))
 
 ;; Creates an empty statemap
 (: statemap-init : (All (C S) (-> (StateMap C S))))
 (define statemap-init make-hash)
 
+;; Creates a statemap with the given list of pairs of Cells and the States they are in
 (: statemap-construct : (All (C S) (-> (Listof (Pair C S)) (StateMap C S))))
 (define statemap-construct make-hash)
 
@@ -242,8 +253,9 @@
     (define-states states : FooStates (a b c))
     (check-equal? a 'a)
     (check-equal? b 'b)
-    (check-equal? c 'c))
+    (check-equal? c 'c)
+    (check-equal? states (list 'a 'b 'c)))
 
-(provide define-states ALIVE-OR-DEAD-STATES rect-custom rect-from overlay/statemaps rect-solid biased-random-select path)
+(provide define-states rect-custom rect-from overlay/statemaps rect-solid biased-random-select path)
 
 

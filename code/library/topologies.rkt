@@ -5,11 +5,14 @@
 (module+ test (require typed/rackunit))
 
 
+;; A standard topology which add Posns linearly 
 (: cartesian-topology : (Topology Posn Posn))
 (define (cartesian-topology pos offset)
     (Posn (+ (posn-x offset) (posn-x pos))
           (+ (posn-y offset) (posn-y pos))))
 
+;; Restricts a Topology to produce additional Void returns an input cell and offset, and the output of 
+;; the original topology to not satisfy the provided predicate
 (: truncate-topology : (All (C O) ((Topology C O ) (C O C -> Boolean ) -> (Topology C O))))
 (define (truncate-topology topology predicate)
     (lambda ([cell : C ] [offset : O])
@@ -18,6 +21,10 @@
                 (when (predicate cell offset out)
                     out)))))
 
+
+
+;; Modifies a Topology with a series of "modifiers", which each take in a Cell and produce either
+;; a Void or a new Cell value, which are applied in sequence to outputs of a topology 
 (: modify-topology : (All (C O) ((Topology C O) (C -> (Union Void C)) *  -> (Topology C O))))
 (define (modify-topology topology . modifiers)
   (lambda (cell offset)
@@ -28,18 +35,14 @@
             [else (nest ((first modifiers) cell) (rest modifiers))]))
     (nest (topology cell offset) modifiers)))
             
+
+;; Creates a modified cartesian topology which is restricted by the given max-x and max-y values. Outputs cells 
+;; from the cartesian topology which have x values or y values with absolute values greater than the given
+;; max-x or max-y are turned to Void.
 (: make-finite-cartesian-topology : (Positive-Integer Positive-Integer -> (Topology Posn Posn)))
 (define (make-finite-cartesian-topology max-x max-y)
     (truncate-topology cartesian-topology 
         (lambda (_ __ [new-pos : Posn]) (in-cartesian-region new-pos (Posn max-x max-y)))))
-        ;or (> (x new-pos) max-x) (> y max-y) (< y 0) (< x 0)))
-    #;(lambda ([pos : Posn] [offset : Posn])
-        (let* (
-            [new-pos (cartesian-topology pos offset)]
-            [x (posn-x new-pos)]
-            [y (posn-y new-pos)])
-        (unless (or (> (x new-pos) max-x) (> y max-y) (< y 0) (< x 0))
-            new-pos)))
 
 ;; Returns if a point is in a region bounded by the origin and the provided point
 (: in-cartesian-region : (->* (Posn Posn) [#:origin Posn] Boolean))
@@ -48,6 +51,8 @@
             [y (posn-y point)])
         (not (or (> x (posn-x max-point)) (> y (posn-y max-point)) (< y (posn-y origin)) (< x (posn-x origin))))))
 
+;; Creates a modified cartesian topology in which Posns outputs are "wrapped" around at the given
+;; values
 (: make-wrapping-cartesian-topology : (Integer Integer Integer Integer -> (Topology Posn Posn)))
 (define (make-wrapping-cartesian-topology x-min x-max y-min y-max)
   (modify-topology
@@ -61,7 +66,10 @@
     (check-equal? (w (Posn 0 10) (Posn 1 1)) (Posn 1 0))
 )
 
-( : init-2d-world : (All (S) Positive-Integer Positive-Integer (Posn -> S) -> (World Posn Posn S)))
+;; Convienence functions for creating 2DWorlds with bounded cartesian topolgies. 
+;; The state-initializer function is used to set the starting State of each Cell in the StateMap of
+;; the world 
+( : init-2d-world : (All (S) Positive-Integer Positive-Integer (Posn -> S) -> (2DWorld S)))
 (define (init-2d-world max-x max-y state-initializer)
     (define ht : (StateMap Posn S) (make-hash))
     (for* 
@@ -74,20 +82,15 @@
         (lambda ([_ : Posn]) #t)))
 
 
-( : random-world : (All (S) (->* (Positive-Integer Positive-Integer (Listof S)) (#:seed (Union False Positive-Integer)) (World Posn Posn S))))
-(define (random-world max-x max-y states #:seed (seed #f))
-    (when seed
-        (random-seed seed))
-    (init-2d-world max-x max-y 
-                    (lambda (_) 
-                    (list-ref states (random 0 (length states))))))
+;; Constructs a 2DWorld with default arguments of a standard Cartesian Topology and an ActiveFilter
+;; which returns true for all Cells
 (: simple-2d-world : (All (S) (->* (#:state-map [StateMap Posn S]) 
                                    (#:active-filter [ActiveFilter Posn] 
                                     #:topology [Topology Posn Posn]) 
                                     [World Posn Posn S])))
 (define (simple-2d-world #:state-map statemap 
                          #:topology [topology cartesian-topology] 
-                         #:active-filter [active-filter (lambda (x) #t)]) 
+                         #:active-filter [active-filter (lambda (_) #t)]) 
     (World statemap topology active-filter) )
 
 
