@@ -7,6 +7,17 @@
 (define-struct posn 
     ([x : Integer] 
     [y : Integer]) #:type-name Posn #:transparent)
+
+(: posn-add : Posn Posn -> Posn)
+(define (posn-add posn1 posn2)
+  (Posn (+ (posn-x posn1) (posn-x posn2))
+        (+ (posn-y posn1) (posn-y posn2))))
+
+(: posn-scale : Integer Posn -> Posn)
+(define (posn-scale n posn)
+  (Posn (* n (posn-x posn))
+        (* n (posn-y posn))))
+
 #| 
 Meaning for parametric type variables: 
     C represents the type of the cell. 
@@ -44,29 +55,42 @@ Meaning for parametric type variables:
 ;; A function which, when given a StateMap, Topology, and Cell, returns the new State for that Cell
 (define-type (Rule C O S) ((StateMap C S) (Topology C O) C -> S))
 
+;; Represents a set of Offsets which is used in transition condition calculations
 (define-type (Neighborhood O) (Setof O))
 
+;; A structure representing all characteristics of a simulated "World" in which a Rule
+;; can be applied to 
 (define-struct (C O S) world
     ([state-map : (StateMap C S)] 
     [topology : (Topology C O)] 
     [active-filter : (ActiveFilter C)]) #:type-name World)
 
-
+;; A predefined World for simulations using Posns as the state type and offset type
 (define-type (2DWorld S) (World Posn Posn S))
     
-
+;; A function which defines as a transformation from a World to an Image
 (define-type (Renderer C O S) ((World C O S) -> Image))
 
+;; A predefined Renderer for 2D Worlds 
 (define-type (2DRenderer S) (Renderer Posn Posn S))
 
-(define-type LifelikeRule (Rule Posn Posn AliveOrDead))
-(define-type LifelikeWorld (World Posn Posn AliveOrDead))
-(define-type LifelikeRenderer (Renderer Posn Posn AliveOrDead))
+;; Note, we use the term "Lifelike" as meaning being similiar to Conway's Game of Life,
+;; or a 2 dimensional cellular automata of states that are Alive or Dead, and transition using
+;; a radius 1 Moore Neighborhood.
 
-(define-type (Interleaved A B) (Rec x (U Null (Pairof A (Pairof B x)))))
+;; A predefined "Likelike" Rule, which uses the binary AliveOrDead state on a 2DWorld.
+(define-type LifelikeRule (Rule Posn Posn AliveOrDead))
+
+;; A predefined "Likelike" World, which is a 2DWorld of AliveOrDead states.
+(define-type LifelikeWorld (2DWorld AliveOrDead))
+
+;; A predefined "Lifelike" Renderer, which is a 2DRenderer for the AliveOrDead state.
+(define-type LifelikeRenderer (2DRenderer AliveOrDead))
+
+;; A union types of different descriptions of Direction used for drawing paths 
 (define-type Direction (U 'left 'right 'down 'up))
 
 ; TODO Is there a provide-all-out for types?
 (provide StateMap Topology 2DRenderer 2DWorld ActiveFilter ColorMap Rule Renderer 
     AliveOrDead define-states alive dead World (struct-out world) (struct-out posn) Neighborhood Posn 
-    LifelikeRule LifelikeWorld LifelikeRenderer Interleaved Direction)
+    LifelikeRule LifelikeWorld LifelikeRenderer Direction posn-add posn-scale)

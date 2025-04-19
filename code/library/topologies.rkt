@@ -103,8 +103,4 @@
             (~? (~@ #:active-filter active-filter))
             (~? (~@ #:topology topology))))]))
 
-
-;(: generate-random : )
-
-
 (provide (all-defined-out))

@@ -18,6 +18,7 @@
         (list (cons 1 'one) (cons 2 'two) (cons 3 'three)))
 )
 
+;; Clamps an Integer between a minimum and maximum value
 (: clamp : Integer Integer Integer -> Integer)
 (define (clamp val min-val max-val)
   (cond
@@ -52,15 +53,7 @@
 (: direction->offset : (-> Direction Posn))
 (define (direction->offset d) (hash-ref direction-offset d))
 
-(: posn-add : Posn Posn -> Posn)
-(define (posn-add posn1 posn2)
-  (Posn (+ (posn-x posn1) (posn-x posn2))
-        (+ (posn-y posn1) (posn-y posn2))))
 
-(: posn-scale : Integer Posn -> Posn)
-(define (posn-scale n posn)
-  (Posn (* n (posn-x posn))
-        (* n (posn-y posn))))
 
 ;; Functions identically to racket set-map, but without errors regarding chaperones
 (: set-map : (All (T V) (-> (-> T V) (Setof T) (Listof V))))

@@ -1,7 +1,5 @@
 #lang racket
 
-;; Foo is a bar which is a baz
-(define (foo x)
-    (+ x 1))
+(require "code/main.rkt")
 
-(provide foo)
+(provide all-defined-out)

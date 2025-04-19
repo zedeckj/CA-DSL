@@ -74,36 +74,3 @@
 (provide run)
 
 
-
-;;;;;;;;;; GRAVEYARD ;;;;;;;;
-#;(define-syntax (run-macro stx)
-    (syntax-parse stx 
-        [(_ (cell-type:id offset-type:id state-type:id) 
-            world:expr rule:expr renderer:expr)
-        #'(run 
-            (cast world (World cell-type offset-type state-type)) 
-            (cast rule (Rule cell-type offset-type state-type))
-            (cast renderer (Renderer cell-type offset-type state-type)))]))
-
-         #;#'(begin 
-                (define ann-world : (World cell-type offset-type state-type) world) 
-                (define ann-rule : (Rule cell-type offset-type state-type) rule) 
-                (define ann-renderer : (Renderer cell-type offset-type state-type) renderer)
-            #;(run ann-world ann-rule ann-renderer))
-
-#;(define renderer : (Renderer cell-type offset-type state-type) (make-2d-renderer colormap-alive-or-dead))
-#;(define states : (Listof AliveOrDead) (list 'dead 'alive))
-#;(define world : (World cell-type offset-type state-type) (random-world 50 50 states))
-#;(run world conways renderer)
-#;(define-rule some-rule : (Rule Posn Posn AliveOrDead)
-  (rule 
-    [('dead -> 'alive) 4 in 'alive]
-    [('alive -> 'alive) (2 5) in 'alive]
-    [default 'dead]))
-
-#;(define renderer : (Renderer Posn Posn AliveOrDead) (make-2d-renderer colormap-alive-or-dead))
-#;(define states : (Listof AliveOrDead) (list 'dead 'alive))
-#;(define world : (World Posn Posn AliveOrDead) (random-world 50 50 states))
-#;(run world conways renderer)
-
-#;(define world ())

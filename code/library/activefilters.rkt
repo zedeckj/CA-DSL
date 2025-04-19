@@ -7,3 +7,5 @@
 (define (deactivate-cells frozen-cells)
     (lambda ([cell : C])
         (set-member? frozen-cells cell)))
+
+(provide deactivate-cells)

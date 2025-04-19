@@ -37,6 +37,7 @@
     (overlay/statemaps 
         cartesian-topology
         (Posn 0 0)
+        ;; This annotation shouldn't be required, but compilation fails without it
         (ann (rect-solid 50 50 insulator) (StateMap Posn WireWorldState))
         (Posn 10 10)  
         (path : WireWorldState (0 0) 
