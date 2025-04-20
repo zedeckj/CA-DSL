@@ -11,7 +11,7 @@ Authors: Nate White and Jordan Zedeck
         [survive 2 3]))
 ```
 
-This example uses the `lifelike` macro, which can be used to specify transition rules of cellular automata which can be considered ("life-like")[https://conwaylife.com/wiki/Life-like_cellular_automaton]. Life-like transition rules define the behavior of 2 dimensional cellular automata which contain cells that are either `alive` or `dead`. The `survive` clause describes the allowed numbers of `alive` neighbors required for an `alive` cell to remain `alive`, where the the (Moore Neighborhood)[https://en.wikipedia.org/wiki/Moore_neighborhood] is used as the definition for neighorbing cells. The `born` clause is used to describe the allowed number of `alive` neighbors a `dead` cell is required to have to become `alive`. In order to run and visualize Conway's Game of Life, or any other Rule description, we create a starting World, which describes the layout of Cells and States, and a Renderer. These, along with the Rule, are passed to the `run` function.
+This example uses the `lifelike` macro, which can be used to specify transition rules of cellular automata which can be considered ["life-like"](https://conwaylife.com/wiki/Life-like_cellular_automaton). Life-like transition rules define the behavior of 2 dimensional cellular automata which contain cells that are either `alive` or `dead`. The `survive` clause describes the allowed numbers of `alive` neighbors required for an `alive` cell to remain `alive`, where the the [Moore Neighborhood](https://en.wikipedia.org/wiki/Moore_neighborhood) is used as the definition for neighorbing cells. The `born` clause is used to describe the allowed number of `alive` neighbors a `dead` cell is required to have to become `alive`. In order to run and visualize Conway's Game of Life, or any other Rule description, we create a starting World, which describes the layout of Cells and States, and a Renderer. These, along with the Rule, are passed to the `run` function.
 
 ``` racket
 (define-2d-world world : AliveOrDead 
@@ -24,4 +24,6 @@ This example uses the `lifelike` macro, which can be used to specify transition 
 ```
 
 This example uses a World with a random configuration of states which are `alive` or `dead` in a square with a width of 50 cells. 
+
+
 
