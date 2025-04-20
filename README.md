@@ -25,5 +25,5 @@ This example uses the `lifelike` macro, which can be used to specify transition 
 
 This example uses a World with a random configuration of states which are `alive` or `dead` in a square with a width of 50 cells. 
 
-![Simulating Conway's Game of Life](https://github.com/zedeckj/ca-dsl/blob/f679000723097b4e2fc55e2c73f9f5608aba4e45/gfx/conways.gif =400x410)
+![Simulating Conway's Game of Life](https://github.com/zedeckj/ca-dsl/blob/f679000723097b4e2fc55e2c73f9f5608aba4e45/gfx/conways.gif | width=100)
 
