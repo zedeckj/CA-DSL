@@ -68,7 +68,10 @@ In the `rule` form, one might notice `Posn` being passed as a keyword argument t
         [(_ -> 0)]))
 ```
 
-<img src="https://github.com/zedeckj/ca-dsl/blob/97dd73770efe21aae36c0b7ef4259cac5d031093/gfx/star-wars-gif.gif" width="400" height="410"/>
+<img src="https://github.com/zedeckj/ca-dsl/blob/5b55b0059abaf65a242d85b916a906eda72f621d/gfx/star-wars2.gif" width="400" height="410"/>
+
+
+
 
 [Wireworld](https://en.wikipedia.org/wiki/Wireworld)
 
@@ -84,6 +87,9 @@ In the `rule` form, one might notice `Posn` being passed as a keyword argument t
         [(conductor -> conductor)]
         [(_ -> insulator)]))
 ```
+
+<img src="https://github.com/zedeckj/ca-dsl/blob/f4616b13c30c7412e6c578e059fdde3047e0699f/gfx/wireworld.gif" width="400" height="410"/>
+
 "Predators and Prey"
 
 ``` racket
