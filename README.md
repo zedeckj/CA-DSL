@@ -55,7 +55,7 @@ In the `rule` form, one might notice `Posn` being passed as a keyword argument t
 
 ### More Complex Rules
 
-[Star Wars](https://quuxplusone.github.io/blog/2020/06/29/star-wars-ca/)
+#### [Star Wars](https://quuxplusone.github.io/blog/2020/06/29/star-wars-ca/)
 
 ``` racket
 (define star-wars
@@ -73,13 +73,13 @@ In the `rule` form, one might notice `Posn` being passed as a keyword argument t
 
 
 
-[Wireworld](https://en.wikipedia.org/wiki/Wireworld)
+#### [Wireworld](https://en.wikipedia.org/wiki/Wireworld)
 
 ``` racket 
 
 (define-states states : WireWorldState (head tail conductor insulator))
 
-(define wireworld ;; https://conwaylife.com/wiki/OCA:WireWorld
+(define wireworld
     (moore-rule
         #:state-type WireWorldState
         [(head -> tail -> conductor)]
@@ -90,7 +90,7 @@ In the `rule` form, one might notice `Posn` being passed as a keyword argument t
 
 <img src="https://github.com/zedeckj/ca-dsl/blob/f4616b13c30c7412e6c578e059fdde3047e0699f/gfx/wireworld.gif" width="400" height="410"/>
 
-"Predators and Prey"
+#### "Predators and Prey"
 
 ``` racket
 (define-states states : PredatorsAndPreyState (empty prey predator))
