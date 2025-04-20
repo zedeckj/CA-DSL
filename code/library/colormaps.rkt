@@ -26,11 +26,14 @@
 
 (: make-default-colormap : (All (S) (Listof S) -> (ColorMap S)))
 (define (make-default-colormap states)
-  (define n (length states))
-  (define colors : (Listof Color) (stream->list (stream-take color-gen n)))
-  (define pairs : (Listof (Pairof S Color)) (map (lambda ([a : S] [b : Color ]) (cons a b)) states colors))
-  (define lookup : (HashTable S Color) (make-hash pairs))
-  (lambda ([state : S]) (hash-ref lookup state (error (format "State ~a not specified in colormap" state)))))
+  (define colors : (Listof Color) 
+    (stream->list (stream-take color-gen (length states))))
+  (define pairs : (Listof (Pairof S Color)) 
+    (map (lambda ([a : S] [b : Color]) (cons a b)) states colors))
+  (define lookup : (HashTable S Color) 
+    (make-hash pairs))
+  (lambda ([state : S]) 
+    (hash-ref lookup state (lambda () (error (format "State ~a not specified in colormap" state))))))
 
       
 

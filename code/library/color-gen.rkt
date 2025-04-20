@@ -92,9 +92,19 @@
 (: color-gen : (Sequenceof Color))
 (define color-gen
     (stream-map unit-cube->rgb points-in-cube))
+    
 (module+ test
     (println "These should be distinct colors: ")
-    (apply beside (cast (stream->list (stream-take (stream-map (lambda ([c : Color]) (overlay (square 10 "solid" c ) (square 12 "solid" "white"))) color-gen) 500)) (List* Image Image (Listof Image)))))
+    (apply beside 
+      (cast 
+        (stream->list (stream-take (stream-map 
+              (lambda ([c : Color]) 
+                (overlay 
+                  (square 10 "solid" c ) 
+                  (square 12 "solid" "white"))) 
+          color-gen)
+          500)) 
+      (List* Image Image (Listof Image)))))
 
 (provide color-gen)
 
