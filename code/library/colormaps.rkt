@@ -1,7 +1,7 @@
 #lang typed/racket
 
-(require typed/2htdp/image)
-(module+ test (require typed/rackunit typed/2htdp/image typed/stream))
+(require typed/2htdp/image typed/racket/stream)
+(module+ test (require typed/rackunit typed/2htdp/image))
 (require "../types.rkt" "../utils.rkt" "color-gen.rkt")
 
 (define BLACK (make-color 0 0 0))
@@ -27,9 +27,10 @@
 (: make-default-colormap : (All (S) (Listof S) -> (ColorMap S)))
 (define (make-default-colormap states)
   (define n (length states))
-  (define colors (stream->list (stream-take color-gen n)))
-  (define lookup (map cons states colors))
-  (lambda ([state : Any]) (hash-ref lookup state (error (format "State ~a not specified in colormap" state)))))
+  (define colors : (Listof Color) (stream->list (stream-take color-gen n)))
+  (define pairs : (Listof (Pairof S Color)) (map (lambda ([a : S] [b : Color ]) (cons a b)) states colors))
+  (define lookup : (HashTable S Color) (make-hash pairs))
+  (lambda ([state : S]) (hash-ref lookup state (error (format "State ~a not specified in colormap" state)))))
 
       
 
