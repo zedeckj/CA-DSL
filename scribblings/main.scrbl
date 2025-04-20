@@ -146,7 +146,7 @@ This section documents the macros exported by the rule module, which allow for d
     @item{@verbatim{(count₁ count₂ ...) in state} - Tests if the number of neighbors in @racket[state] matches any of the counts}
     @item{@verbatim{all in state} - Tests if all neighbors are in @racket[state]}
     @item{@verbatim{some in state} - Tests if at least one neighbor is in @racket[state]}
-    @item{Boolean operators: @verbatim[and], @verbatim[or], @verbatim[not], @verbatim[nand], @verbatim[implies], @verbatim[xor], @verbatim[nor]}
+    @item{Boolean operators to join anything above: and, or, not, nand, implies, xor, nor}
   ]
 }
 
@@ -300,4 +300,179 @@ This section documents the functions exported by the neighborhoods module, which
   ]
   
   The function works by unioning the outlines at each layer from 1 to @racket[distance].
+}
+
+@section{Grid Utilities and State Manipulation}
+
+This library provides utilities for creating and manipulating grid-based cellular automata and other grid-based simulations.
+
+@defform[(define-states id : type-id (state-id ...))]{
+  Defines a set of symbolic state constants and binds them to variables.
+  
+  @itemlist[
+    @item{@racket[id] - Bound to a list of all the defined states}
+    @item{@racket[type-id] - The type name for the states}
+    @item{@racket[state-id] - Each individual state identifier that will be bound to its symbolic representation}
+  ]
+}
+
+@defproc[(rect-custom [width integer?] 
+                     [height integer?]
+                     [state-fn (-> posn? any/c)])
+                     hash?]{
+  Creates a statemap over a rectangular region with cells initialized using the given function.
+  
+  The function @racket[state-fn] is called with each position in the rectangle
+  to determine the state for that cell.
+}
+
+@defproc[(rect-from [width integer?] 
+                   [height integer?]
+                   [state-generator (-> any/c)])
+                   hash?]{
+  Creates a statemap over a rectangular region with cells initialized using the given thunk.
+  
+  The function @racket[state-generator] is called for each cell to generate its state.
+}
+
+@defproc[(rect-solid [width integer?] 
+                    [height integer?]
+                    [state any/c])
+                    hash?]{
+  Creates a statemap of a rectangle composed of the given state.
+  
+  All cells in the rectangle will have the same @racket[state] value.
+}
+
+@defproc[(overlay/statemaps [topology any/c]
+                           [offset any/c]
+                           [statemap hash?] ...)
+                           hash?]{
+  Combines multiple statemaps by overlaying them at specified positions.
+  
+  Arguments alternate between an absolute position and then a statemap to be placed 
+  with its lower left corner at that absolute position. Similar in functionality to 
+  @racket[overlay/xy] in the htdp2/image library.
+}
+
+@defproc[(biased-random-select [weighted-sequence (listof (cons/c any/c exact-nonnegative-integer?))])
+                              (-> any/c)]{
+  Creates a function that returns random selections from a weighted list of values.
+  
+  @racket[weighted-sequence] is a list of pairs, where each pair consists of a value 
+  and its corresponding weight (a non-negative integer). The returned function will 
+  select values with probability proportional to their weights.
+}
+
+@defform[(path : type-id (x-expr y-expr) segment ...)
+         #:grammar [(segment (state-expr magnitude-expr direction state-expr ...))
+                    (direction up down left right)]]{
+  Creates a statemap representing a path with the specified segments.
+  
+  @itemlist[
+    @item{@racket[type-id] - The type name for the states in the path}
+    @item{@racket[x-expr y-expr] - The starting position of the path}
+    @item{@racket[state-expr] - The state for the current segment}
+    @item{@racket[magnitude-expr] - The length of the current segment}
+    @item{@racket[direction] - The direction of the current segment (up, down, left, or right)}
+  ]
+  
+  Multiple segments can be chained together to create complex paths.
+}
+
+@section{Grid Topologies}
+
+This library provides functions for creating and manipulating different grid topologies for cellular automata and other grid-based simulations.
+
+@defproc[(cartesian-topology [pos posn?] [offset posn?]) posn?]{
+  A standard topology which adds Posns linearly.
+  
+  Returns a new position that is the sum of the input position and offset.
+}
+
+@defproc[(truncate-topology [topology (-> any/c any/c (or/c any/c void?))]
+                           [predicate (-> any/c any/c any/c boolean?)])
+                           (-> any/c any/c (or/c any/c void?))]{
+  Restricts a Topology to produce additional Void returns if an input cell, offset, and the 
+  output of the original topology do not satisfy the provided predicate.
+  
+  Returns a new topology function that respects the given predicate.
+}
+
+@defproc[(modify-topology [topology (-> any/c any/c (or/c any/c void?))]
+                         [modifier (-> any/c (or/c any/c void?))] ...)
+                         (-> any/c any/c (or/c any/c void?))]{
+  Modifies a Topology with a series of "modifiers", which each take in a Cell and produce either
+  a Void or a new Cell value, which are applied in sequence to outputs of a topology.
+  
+  Returns a new topology function with the modifiers applied.
+}
+
+@defproc[(make-finite-cartesian-topology [max-x exact-positive-integer?]
+                                        [max-y exact-positive-integer?])
+                                        (-> posn? posn? (or/c posn? void?))]{
+  Creates a modified cartesian topology which is restricted by the given max-x and max-y values.
+  
+  Outputs cells from the cartesian topology which have x values or y values with absolute values 
+  greater than the given max-x or max-y are turned to Void.
+}
+
+@defproc[(in-cartesian-region [point posn?]
+                             [max-point posn?]
+                             [#:origin origin posn? (posn 0 0)])
+                             boolean?]{
+  Returns if a point is in a region bounded by the origin and the provided max-point.
+  
+  A point is in the region if its coordinates are both greater than or equal to the origin's coordinates
+  and less than or equal to the max-point's coordinates.
+}
+
+@defproc[(make-wrapping-cartesian-topology [x-min integer?]
+                                          [x-max integer?]
+                                          [y-min integer?]
+                                          [y-max integer?])
+                                          (-> posn? posn? posn?)]{
+  Creates a modified cartesian topology in which Posns outputs are "wrapped" around at the given values.
+  
+  In this topology, if a coordinate exceeds the maximum value, it wraps around to the minimum value,
+  and vice versa.
+}
+
+@defproc[(init-2d-world [max-x exact-positive-integer?]
+                       [max-y exact-positive-integer?]
+                       [state-initializer (-> posn? any/c)])
+                       any/c]{
+  Convenience function for creating 2D worlds with bounded cartesian topologies.
+  
+  The state-initializer function is used to set the starting State of each Cell in the StateMap of
+  the world.
+}
+
+@defproc[(simple-2d-world [#:state-map statemap hash?]
+                         [#:topology topology (-> posn? posn? (or/c posn? void?)) cartesian-topology]
+                         [#:active-filter active-filter (-> posn? boolean?) (lambda (_) #t)])
+                         any/c]{
+  Constructs a 2D World with optional arguments for a topology and an ActiveFilter.
+  
+  By default, uses a standard Cartesian Topology and an ActiveFilter which returns true for all Cells.
+}
+
+@defform[(define-2d-world world : state-type 
+                         #:state-map statemap-expr
+                         #:active-filter active-filter-expr
+                         #:topology topology-expr)
+         #:contracts ([statemap-expr hash?]
+                      [active-filter-expr (-> posn? boolean?)]
+                      [topology-expr (-> posn? posn? (or/c posn? void?))])]{
+  Defines a 2D world with the given parameters.
+  
+  @itemlist[
+    @item{@racket[world] - The identifier to bind the new world to}
+    @item{@racket[state-type] - The type of state values in the world}
+    @item{@racket[statemap-expr] - Expression producing the state map for the world}
+    @item{@racket[active-filter-expr] - Optional expression producing an active filter function}
+    @item{@racket[topology-expr] - Optional expression producing a topology function}
+  ]
+  
+  The @racket[#:active-filter] and @racket[#:topology] parameters are optional.
 }
