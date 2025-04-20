@@ -27,3 +27,30 @@ This example uses a World with a random configuration of states which are `alive
 
 <img src="https://github.com/zedeckj/ca-dsl/blob/d1132788a2340b63099d0a22e31462cfaeab2c24/gfx/conways-small.gif" width="400" height="410"/>
 
+
+The `lifelike` syntax used in this example is a macro which wraps around `moore-rule`, which itself wraps around `rule`. Conway's Game of Life can also be expressed, more verbosely, with these directly.
+
+``` racket
+(define conways : LifelikeRule
+    (moore-rule 
+        #:state-type AliveOrDead
+        [(dead -> alive) 3 in alive]
+        [(alive -> alive) (2 3) in alive]
+        [(_ -> dead)]))
+```
+
+``` racket
+(define conways : LifelikeRule
+    (rule 
+        #:cell-type Posn
+        #:offset-type Posn
+        #:state-type AliveOrDead
+        #:neighborhood (moore-neighborhood)
+        [(dead -> alive) 3 in alive]
+        [(alive -> alive) (2 3) in alive]
+        [(_ -> dead)]))
+```
+
+#### More Complex Rules
+
+`CA-DSL` provides utilities 

@@ -5,12 +5,31 @@
          "../code/renderer.rkt" 
          "../code/library/statemaps.rkt" 
         "../code/library/colormaps.rkt" 
-        "../code/library/topologies.rkt")
+        "../code/library/topologies.rkt"
+        "../code/library/neighborhoods.rkt")
 
 (define conways : LifelikeRule
     (lifelike 
         [born 3]
         [survive 2 3]))
+
+#;(define conways : LifelikeRule
+    (moore-rule 
+        #:state-type AliveOrDead
+        [(dead -> alive) 3 in alive]
+        [(alive -> alive) (2 3) in alive]
+        [(_ -> dead)]))
+
+
+#;(define conways : LifelikeRule
+    (rule 
+        #:cell-type Posn
+        #:offset-type Posn
+        #:state-type AliveOrDead
+        #:neighborhood (moore-neighborhood)
+        [(dead -> alive) 3 in alive]
+        [(alive -> alive) (2 3) in alive]
+        [(_ -> dead)]))
 
 
 (define-2d-world world : AliveOrDead 
