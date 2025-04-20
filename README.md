@@ -51,7 +51,7 @@ The `lifelike` syntax used in this example is a macro which wraps around `moore-
         [(_ -> dead)]))
 ```
 
-In the `rule` form, one might notice `Posn` being passed as a keyword argument to `#:cell-type and `#:offset-type`. This indicates that this rule operates on a 2D plane of `Posn`s, which are coordinates. The built-in `make-2d-renderer` is capable of creating `Renderer`s for this type of `World`, but `Rules` with any type can easily be created and ran with a custom `Renderer`. 
+In the `rule` form, one might notice `Posn` being passed as a keyword argument to `#:cell-type` and `#:offset-type`. This indicates that this rule operates on a 2D plane of `Posn`s, which are coordinates. The built-in `make-2d-renderer` is capable of creating `Renderer`s for this type of `World`, but `Rules` with any type can easily be created and ran with a custom `Renderer`. 
 
 ### More Complex Rules
 
