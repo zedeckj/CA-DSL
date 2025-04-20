@@ -39,18 +39,38 @@
 
 
 (begin-for-syntax
-  (define-syntax-class bin-op
-  #:description "binary operator"
-  (pattern (~or (~datum and) (~datum or) (~datum nand) 
-                (~datum implies) (~datum xor) (~datum nor)))))
+  ;; https://en.cppreference.com/w/c/language/operator_precedence
+
+  (define-syntax-class and-nand
+  #:description "and/nand"
+  (pattern (~or (~datum and) (~datum nand))))
+
+  (define-syntax-class or-nor
+  #:description "or/nor"
+  (pattern (~or (~datum or) (~datum nor))))
+
+  (define-syntax-class xor-implies
+  #:description "xor/implies"
+  (pattern (~or (~datum xor) (~datum implies)))))
+
 
 ;; Translates the condition portion of a clause into an expression that will evaluate into a boolean
 (define-syntax (parse-condition stx)
 	(syntax-parse stx
-		[(_ info-bundle:expr cond-tokens1:expr ... operator:bin-op cond-tokens2:expr ...)
+		[(_ info-bundle:expr cond-tokens1:expr ...+ operator:or-nor cond-tokens2:expr ...+)
 			#'(operator 
-					(parse-condition info-bundle cond-tokens1 ...) 
-					(parse-condition info-bundle cond-tokens2 ...))]
+        (parse-condition info-bundle cond-tokens1 ...) 
+        (parse-condition info-bundle cond-tokens2 ...))]
+
+		[(_ info-bundle:expr cond-tokens1:expr ...+ operator:xor-implies cond-tokens2:expr ...+)
+			#'(operator 
+        (parse-condition info-bundle cond-tokens1 ...) 
+        (parse-condition info-bundle cond-tokens2 ...))]
+
+  	[(_ info-bundle:expr cond-tokens1:expr ...+ operator:and-nand cond-tokens2:expr ...+)
+			#'(operator 
+        (parse-condition info-bundle cond-tokens1 ...) 
+        (parse-condition info-bundle cond-tokens2 ...))]
 
 		[(_ info-bundle:expr (~datum not) cond-tokens:expr ...)
 			#'(not (parse-condition info-bundle cond-tokens ...) )]
@@ -62,6 +82,14 @@
     [(_ (neighbors:expr neighborhood-len:expr state-type:id) count:expr (~datum in) state:expr)
         #'(has-neighbors-in-state? (ann state state-type) neighbors (parse-count neighbors neighborhood-len count))]
     [(_ _) #'#t]))
+
+(module+ test
+  (check-equal? (parse-condition ('() 0 Symbol) not 2 in 'alive) #t)
+  (check-equal? (parse-condition ('() 0 Symbol) 0 in 'alive) #t)
+  (check-equal? (parse-condition ('() 0 Symbol) not 2 in 'alive and 0 in 'dead) #t)
+  (check-equal? (parse-condition ('() 0 Symbol) 4 in 'alive and 3 in 'dead or 0 in 'alive) #t)
+  (check-equal? (parse-condition ('() 0 Symbol) 0 in 'alive or 4 in 'alive and 3 in 'dead ) #t)
+)
 
 ;; Composes a clause by parsing a transition expression of the form (a -> b) into roughly 
 ;; (if (and (eq? cur-state a) condition) b fallback), while being given a condition that has already 
@@ -111,20 +139,31 @@
     [(_ _ cur-state)
      #'(error (format "No valid transition from state ~a" cur-state))]))
 
-;; Example Expansion
-;; For parsing 
-#;[(1 -> 1)] #;[(0 -> 0) 0 in 1] #;[(0 -> 1)] 
+;; Example expansion
 
-#;(parse-clauses ((list 1 2 3) 3 Integer) 0
+#; (parse-clauses ((list 1 2 3) 3 Integer) 0
         [(1 -> 1)]
         [(0 -> 0) 0 in 1]
         [(0 -> 1)])
 
-#;(if (and (eq? 0 (ann 1 Integer)) #t)
+#; (if (and (eq? 0 (ann 1 Integer)) #t)
      (ann 1 Integer)
      (if (and (eq? 0 (ann 0 Integer)) (has-neighbors-in-state? (ann 1 Integer) (list 1 2 3) (list (ann 0 Nonnegative-Integer))))
        (ann 0 Integer)
        (if (and (eq? 0 (ann 0 Integer)) #t) (ann 1 Integer) (error (format "No valid transition from state ~a" 0)))))
+    
+
+
+;; Example Expansion
+#;[(1 -> 1)] #;[(0 -> 0) 0 in 1] #;[(0 -> 1)] 
+
+#; (if (and (eq? 0 (ann 1 Integer)) #t)
+     (ann 1 Integer)
+     (if (and (eq? 0 (ann 0 Integer)) (has-neighbors-in-state? (ann 1 Integer) (list 1 2 3) (list (ann 0 Nonnegative-Integer))))
+       (ann 0 Integer)
+       (if (and (eq? 0 (ann 0 Integer)) #t) (ann 1 Integer) (error (format "No valid transition from state ~a" 0)))))
+
+
 
 
 ;; Main macro for declaring a Rule for a cellular automata in the most general case the DSL supports
