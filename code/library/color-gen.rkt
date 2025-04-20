@@ -14,7 +14,7 @@
 (: cube-vertices (Listof Point))
 (define cube-vertices
   (list
-   '(0 0 0) '(1 1 1) ; Black - White
+   '(1 1 1) '(0 0 0) ; Black - White
    '(1 0 0) '(0 1 1) ; Red - Cyan 
    '(0 1 0) '(1 0 1) ; Green - Magenta
    '(0 0 1) '(1 1 0))) ; Blue - Yellow

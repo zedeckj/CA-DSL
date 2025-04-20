@@ -105,3 +105,4 @@ In the `rule` form, one might notice `Posn` being passed as a keyword argument t
         [(predator -> predator) some in prey]
         [(_ -> empty)]))
 ```
+<img src="https://github.com/zedeckj/ca-dsl/blob/79d8f9f1428073487195934f08537fdec8b6f21b/gfx/predators-and-prey.gif" width="400" height="410"/>

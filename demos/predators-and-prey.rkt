@@ -14,7 +14,6 @@
 
 (define-states states : PredatorsAndPreyState (empty prey predator))
 
-
 (define predators-and-prey
     (moore-rule
         #:state-type PredatorsAndPreyState
