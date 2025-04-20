@@ -54,6 +54,7 @@ The `lifelike` syntax used in this example is a macro which wraps around `moore-
 In the `rule` form, one might notice `Posn` being passed as a keyword argument to `#:cell-type` and `#:offset-type`. This indicates that this rule operates on a 2D plane of `Posn`s, which are coordinates. The built-in `make-2d-renderer` is capable of creating `Renderer`s for this type of `World`, but `Rules` with any type can easily be created and ran with a custom `Renderer`. 
 
 ### More Complex Rules
+---
 
 #### [Star Wars](https://quuxplusone.github.io/blog/2020/06/29/star-wars-ca/)
 
@@ -74,6 +75,7 @@ In the `rule` form, one might notice `Posn` being passed as a keyword argument t
 
 
 #### [Wireworld](https://en.wikipedia.org/wiki/Wireworld)
+
 
 ``` racket 
 
@@ -106,3 +108,41 @@ In the `rule` form, one might notice `Posn` being passed as a keyword argument t
         [(_ -> empty)]))
 ```
 <img src="https://github.com/zedeckj/ca-dsl/blob/79d8f9f1428073487195934f08537fdec8b6f21b/gfx/predators-and-prey.gif" width="400" height="410"/>
+
+The full code for running these example `Rule`s, with the definitions of the initial `World`s, and `Renderer` configurations can be seen in the `demos` directory.
+
+### Macro Expansion
+---
+
+To give a picture of the utility of this DSL, the full expansion of the "Predators and Prey" rule as defined above is provided below. 
+
+``` racket
+(define predators-and-prey
+     (lambda ([state-map : (StateMap Posn PredatorsAndPreyState)] [topology : (Topology Posn Posn)] [cell : Posn])
+       (let ([in-state : PredatorsAndPreyState (hash-ref state-map cell)]
+             [neighbors : (Listof PredatorsAndPreyState) (get-neighbors cell state-map topology (moore-neighborhood))])
+         (if (and (eq? in-state (ann empty PredatorsAndPreyState))
+                  (and (has-neighbors-in-state? (ann prey PredatorsAndPreyState) neighbors (list (ann 3 Nonnegative-Integer)))
+                       (has-neighbors-in-state? (ann predator PredatorsAndPreyState) neighbors (list (ann 0 Nonnegative-Integer)))))
+           (ann prey PredatorsAndPreyState)
+           (if (and (eq? in-state (ann prey PredatorsAndPreyState))
+                          (has-neighbors-in-state? (ann prey PredatorsAndPreyState) neighbors (list (length neighbors))))
+             (ann predator PredatorsAndPreyState)
+             (if (and (eq? in-state (ann prey PredatorsAndPreyState))
+                            (has-neighbors-in-state? (ann predator PredatorsAndPreyState) neighbors (list (ann 0 Nonnegative-Integer))))
+               (ann prey PredatorsAndPreyState)
+               (if (and (eq? in-state (ann empty PredatorsAndPreyState))
+                              (and (has-neighbors-in-state? (ann predator PredatorsAndPreyState) neighbors (list (ann 2 Nonnegative-Integer)))
+                                   (has-neighbors-in-state?
+                                    (ann prey PredatorsAndPreyState)
+                                    neighbors
+                                    (range 1 (add1 (set-count (moore-neighborhood)))))))
+                 (ann predator PredatorsAndPreyState)
+                 (if (and (eq? in-state (ann predator PredatorsAndPreyState))
+                                (has-neighbors-in-state?
+                                 (ann prey PredatorsAndPreyState)
+                                 neighbors
+                                 (range 1 (add1 (set-count (moore-neighborhood))))))
+                   (ann predator PredatorsAndPreyState)
+                   (if #t (ann empty PredatorsAndPreyState) (error (format "No valid transition from state ~a" in-state)))))))))))
+```
