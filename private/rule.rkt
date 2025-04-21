@@ -87,6 +87,7 @@
   (check-equal? (parse-condition ('() 0 Symbol) not 2 in 'alive and 0 in 'dead) #t)
   (check-equal? (parse-condition ('() 0 Symbol) 4 in 'alive and 3 in 'dead or 0 in 'alive) #t)
   (check-equal? (parse-condition ('() 0 Symbol) 0 in 'alive or 4 in 'alive and 3 in 'dead ) #t)
+  (check-equal? (parse-condition ('() 0 Symbol) 0 in 'alive xor 4 in 'alive implies 3 in 'dead ) #f)
 )
 
 ;; Composes a clause by parsing a transition expression of the form (a -> b) into roughly 
