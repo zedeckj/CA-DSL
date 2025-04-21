@@ -1,3 +1,3 @@
 #lang typed/racket
 (require "colormaps.rkt" "neighborhoods.rkt" "statemaps.rkt" "topologies.rkt")
-(provide all-defined-out)
+(provide (all-from-out "colormaps.rkt" "neighborhoods.rkt" "statemaps.rkt" "topologies.rkt"))
