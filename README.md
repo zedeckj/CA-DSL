@@ -167,6 +167,48 @@ To give a picture of the utility of this DSL, the full expansion of the "Predato
                    (if #t (ann empty PredatorsAndPreyState) (error (format "No valid transition from state ~a" in-state)))))))))))
 ```
 
+## Rule Syntax
+
+The grammar for the core `rule` macro in Backus–Naur form. 
+
+```
+<RULE> ::= 
+        (rule 
+                #:neighborhood <expr>
+                #:state-type <type>
+                #:cell-type <type>
+                #:offset-type <type>
+                <BRANCH> ...+ )
+
+
+<BRANCH> ::= [<TRANSITION> <COND>]
+
+<TRANSITION> ::= (<STATE-CHAIN>)
+             | (_ -> <STATE>)
+
+<STATE-CHAIN> ::= <STATE> -> <STATE> 
+        | <STATE> -> <STATE-CHAIN>
+
+<COND> ::=
+        | <COUNTS> in <STATE>
+        | <COND> and <COND>
+        | <COND> or <COND>
+        | not <COND>
+
+<COUNTS> ::= (<natural> <natural> ...)
+         | <natural>
+         | some
+         | all
+
+
+<STATE> ::= <expr>
+<CELL> ::= <expr>
+<OFFSET> ::= <expr>
+```
+
+
+
+
 ## Developers
 
 See [private README](private/README.md) for details about the internal program structure.
