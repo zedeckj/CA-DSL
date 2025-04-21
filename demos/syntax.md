@@ -12,9 +12,11 @@
 <BRANCH> ::= [<TRANSITION> <COND>]
 
 
-<TRANSITION> ::= (<STATE> -> <STATE>)
+<TRANSITION> ::= (<STATE-CHAIN>)
              | (_ -> <STATE>)
-             | (<id>)
+
+<STATE-CHAIN> ::= <STATE> -> <STATE> 
+        | <STATE> -> <STATE-CHAIN>
 
 <COND> ::=
         | <COUNTS> in <STATE>
