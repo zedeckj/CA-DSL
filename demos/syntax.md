@@ -25,7 +25,6 @@
 
 <COUNTS> ::= (<natural> <natural> ...)
          | <natural>
-         | none
          | some
          | all
 
