@@ -234,7 +234,7 @@ Once installed, you can access the documentation via:
 raco docs ca-dsl
 ```
 
-Finally, you can run the tests with:
+Finally, you can run demos and the tests with:
 
 ```
 raco test -p ca-dsl
