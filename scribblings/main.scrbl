@@ -448,15 +448,6 @@ This library provides functions for creating and manipulating different grid top
   the world.
 }
 
-@defproc[(simple-2d-world [#:state-map statemap hash?]
-                         [#:topology topology (-> posn? posn? (or/c posn? void?)) cartesian-topology]
-                         [#:active-filter active-filter (-> posn? boolean?) (lambda (_) #t)])
-                         any/c]{
-  Constructs a 2D World with optional arguments for a topology and an ActiveFilter.
-  
-  By default, uses a standard Cartesian Topology and an ActiveFilter which returns true for all Cells.
-}
-
 @defform[(define-2d-world world : state-type 
                          #:state-map statemap-expr
                          #:active-filter active-filter-expr

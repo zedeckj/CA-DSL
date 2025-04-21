@@ -83,7 +83,7 @@
 
 
 ;; Constructs a 2DWorld with default arguments of a standard Cartesian Topology and an ActiveFilter
-;; which returns true for all Cells
+;; which returns true for all Cells. The define-2d-world macro has better syntax for this. 
 (: simple-2d-world : (All (S) (->* (#:state-map [StateMap Posn S]) 
                                    (#:active-filter [ActiveFilter Posn] 
                                     #:topology [Topology Posn Posn]) 
@@ -93,7 +93,7 @@
                          #:active-filter [active-filter (lambda (_) #t)]) 
     (World statemap topology active-filter) )
 
-
+;; A shorthand syntax for making a 
 (define-syntax (define-2d-world stx)
     (syntax-parse stx
     [(_ world:id (~datum :) state-type:id 
@@ -106,4 +106,4 @@
             (~? (~@ #:active-filter active-filter))
             (~? (~@ #:topology topology))))]))
 
-(provide (all-defined-out))
+(provide (all-defined-out) )

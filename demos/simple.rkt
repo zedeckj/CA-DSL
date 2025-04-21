@@ -19,16 +19,14 @@
 	 [4 GREEN]))
            
 
-(define world : (2DWorld Integer) 
-    (simple-2d-world 
+(define-2d-world world :  Integer
         #:state-map 
         (overlay/statemaps 
             (make-wrapping-cartesian-topology 20 25 20 25)
             (Posn 0 0) 
             (ann (rect-solid 40 40 0) (StateMap Posn Integer))
             (Posn 15 15)
-            (rect-solid 1 1 1))))
-
+            (rect-solid 1 1 1)))
 
 (define renderer : (2DRenderer Integer) (make-2d-renderer wave-color-map))
 (run world waves renderer)
