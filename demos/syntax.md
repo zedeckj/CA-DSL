@@ -1,3 +1,4 @@
+```
 <RULE> ::= 
         (rule 
                 #:neighborhood <expr>
@@ -34,3 +35,4 @@
 <CELL> ::= <expr>
 
 <OFFSET> ::= <expr>
+```
