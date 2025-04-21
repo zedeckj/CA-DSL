@@ -1,16 +1,6 @@
 #lang typed/racket
 
-(require 
-    "../code/run.rkt"
-    "../code/types.rkt"
-    "../code/rule.rkt"
-    "../code/renderer.rkt"
-    "../code/library/colormaps.rkt"
-    "../code/library/topologies.rkt"
-    "../code/library/neighborhoods.rkt"
-    "../code/library/statemaps.rkt"
-    (for-syntax syntax/parse syntax/macro-testing))
-(module+ test (require typed/rackunit))
+(require ca-dsl)
 
 (define waves ;; https://conwaylife.com/wiki/OCA:WireWorld
     (moore-rule

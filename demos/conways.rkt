@@ -1,12 +1,6 @@
 #lang typed/racket
-(require "../code/types.rkt" 
-         "../code/run.rkt" 
-         "../code/rule.rkt" 
-         "../code/renderer.rkt" 
-         "../code/library/statemaps.rkt" 
-        "../code/library/colormaps.rkt" 
-        "../code/library/topologies.rkt"
-        "../code/library/neighborhoods.rkt")
+
+(require ca-dsl)
 
 (define conways : LifelikeRule
     (lifelike 

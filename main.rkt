@@ -1,3 +1,3 @@
 #lang typed/racket
-(require "code/main.rkt")
-(provide (all-from-out "code/main.rkt"))
+(require "private/main.rkt")
+(provide (all-from-out "private/main.rkt"))
