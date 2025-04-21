@@ -2,16 +2,36 @@
 
 Authors: Nate White and Jordan Zedeck
 
-`CA-DSL` is a Domain Specific Language for expressing and simulating cellular automata in Typed Racket. In `CA-DSL`, [Conway's Came of Life](https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life) can easily be expressed as the following:
+`CA-DSL` is a Domain Specific Language for expressing and simulating cellular automata in Typed Racket. Cellular automata, of which the most famous example is Conway's Game of Life, are deterministic simulations where a grid of cells change between states in response to their neighbors and a set of predefined rules. It is notable for being capable of producing complex behaviors from simple rules, which is the reason its name draws the allusion to how the complexity of life emerges from relatively simple laws of organic chemistry. 
 
-``` racket
+CA-DSL allows for the specification of the environment in which the simulation runs and its starting state (the "world"), the "rule" by which it it evolves, and the "renderer" which controls how it is visually displayed.
+
+For example, here is the code to express [Conway's Game of Life](https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life) using CA-DSL:
+```racket 
+#lang typed/racket
+
+(require ca-dsl)
+
+;; Defines a world of cartesian cells with the given states 
+(define-2d-world world : AliveOrDead 
+    #:state-map (rect-from 50 50
+                (biased-random-select 
+                    (list (cons alive 3) (cons dead 4)))))
+
+;; Defines how cells evolve at each time step
 (define conways : LifelikeRule
     (lifelike 
         [born 3]
         [survive 2 3]))
+
+;; Creates a renderer capable of visually representing the states on 2 dimensions
+(define renderer : LifelikeRenderer (make-2d-renderer colormap-alive-or-dead))
+
+;; Opens a GUI window of the simulation
+(run world conways renderer)
 ```
 
-This example uses the `lifelike` macro, which can be used to specify transition rules of cellular automata which can be considered ["life-like"](https://conwaylife.com/wiki/Life-like_cellular_automaton). Life-like transition rules define the behavior of 2 dimensional cellular automata which contain cells that are either `alive` or `dead`. The `survive` clause describes the allowed numbers of `alive` neighbors required for an `alive` cell to remain `alive`, where the the [Moore Neighborhood](https://en.wikipedia.org/wiki/Moore_neighborhood) is used as the definition for neighorbing cells. The `born` clause is used to describe the allowed number of `alive` neighbors a `dead` cell is required to have to become `alive`. In order to run and visualize Conway's Game of Life, or any other `Rule` description, we create a starting `World`, which describes the layout of cells and states, and a `Renderer`. These, along with the `Rule`, are passed to the `run` function.
+This example uses the `lifelike` macro, which can be used to specify transition rules of cellular automata which can be considered ["life-like"](https://conwaylife.com/wiki/Life-like_cellular_automaton). Life-like transition rules define the behavior of 2 dimensional cellular automata which contain cells that are either `alive` or `dead`. The `survive` clause describes the allowed numbers of `alive` neighbors required for an `alive` cell to remain `alive`, where the [Moore Neighborhood](https://en.wikipedia.org/wiki/Moore_neighborhood) is used as the definition for neighorbing cells. The `born` clause is used to describe the allowed number of `alive` neighbors a `dead` cell is required to have to become `alive`. In order to run and visualize Conway's Game of Life, or any other `Rule` description, we create a starting `World`, which describes the layout of cells and states, and a `Renderer`. These, along with the `Rule`, are passed to the `run` function.
 
 ``` racket
 (define-2d-world world : AliveOrDead 
@@ -145,4 +165,35 @@ To give a picture of the utility of this DSL, the full expansion of the "Predato
                                  (range 1 (add1 (set-count (moore-neighborhood))))))
                    (ann predator PredatorsAndPreyState)
                    (if #t (ann empty PredatorsAndPreyState) (error (format "No valid transition from state ~a" in-state)))))))))))
+```
+
+## Developers
+
+See [private README](private/README.md) for details about the internal program structure.
+
+## Installing and running
+
+Check out this Git repository, change directory into it, and run:
+
+
+```
+raco pkg install
+```
+
+Then import as
+
+```
+(require ca-dsl)
+```
+
+Once installed, you can access the documentation via:
+
+```
+raco docs ca-dsl
+```
+
+Finally, you can run the tests with:
+
+```
+raco test -p ca-dsl
 ```
