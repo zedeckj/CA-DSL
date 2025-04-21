@@ -81,6 +81,19 @@
         #'(has-neighbors-in-state? (ann state state-type) neighbors (parse-count neighbors neighborhood-len count))]
     [(_ _) #'#t]))
 
+;; 3 in prey and 0 in predator
+
+;; EXPANDS TO
+
+#; (and (has-neighbors-in-state? 
+          (ann prey PredatorsAndPreyState) 
+          neighbors 
+          (list (ann 3 Nonnegative-Integer)))
+        (has-neighbors-in-state? 
+          (ann predator PredatorsAndPreyState) 
+          neighbors 
+          (list (ann 0 Nonnegative-Integer))))
+
 (module+ test
   (check-equal? (parse-condition ('() 0 Symbol) not 2 in 'alive) #t)
   (check-equal? (parse-condition ('() 0 Symbol) 0 in 'alive) #t)
@@ -102,6 +115,18 @@
             (ann to-state state-type) 
             fallback)]))
 
+#;[(empty -> prey) 3 in prey and 0 in predator]
+
+;; EXPANDS TO
+
+#;(if (and 
+        (eq? in-state (ann empty PredatorsAndPreyState))
+        (and 
+          (has-neighbors-in-state? (ann prey PredatorsAndPreyState) neighbors (list (ann 3 Nonnegative-Integer)))
+          (has-neighbors-in-state? (ann predator PredatorsAndPreyState) neighbors (list (ann 0 Nonnegative-Integer)))))
+      prey
+      ...) 
+      
 ;; Helper function for parse-clauses that implements functionality for chained state transitions 
 ;; such as #'(a -> b -> c) by deconstructing this syntax into a list of binary transitions 
 ;; (so the above example becomes [#'(a -> b) #'(b -> c)])
@@ -185,6 +210,48 @@
          (let ([in-state : state-type (hash-ref state-map cell)]
                [neighbors : (Listof state-type) (get-neighbors cell state-map topology neighborhood)])
            (parse-clauses (neighbors (set-count neighborhood) state-type) in-state clauses ...)))]))
+
+#;(rule
+    #:cell-type Posn
+    #:offset-type Posn
+    #:state-type PredatorsAndPreyState
+    #:neighborhood (moore-neighborhood)
+    [(empty -> prey) 3 in prey and 0 in predator]
+    [(prey -> predator) all in prey]
+    [(prey -> prey) 0 in predator]
+    [(empty -> predator) 2 in predator and some in prey]
+    [(predator -> predator) some in prey]
+    [(_ -> empty)])
+
+;; EXPANDS TO
+
+#;(lambda ([state-map : (StateMap Posn PredatorsAndPreyState)] [topology : (Topology Posn Posn)] [cell : Posn])
+       (let ([in-state : PredatorsAndPreyState (hash-ref state-map cell)]
+             [neighbors : (Listof PredatorsAndPreyState) (get-neighbors cell state-map topology (moore-neighborhood))])
+         (if (and (eq? in-state (ann empty PredatorsAndPreyState))
+                  (and (has-neighbors-in-state? (ann prey PredatorsAndPreyState) neighbors (list (ann 3 Nonnegative-Integer)))
+                       (has-neighbors-in-state? (ann predator PredatorsAndPreyState) neighbors (list (ann 0 Nonnegative-Integer)))))
+           (ann prey PredatorsAndPreyState)
+           (if (and (eq? in-state (ann prey PredatorsAndPreyState))
+                          (has-neighbors-in-state? (ann prey PredatorsAndPreyState) neighbors (list (length neighbors))))
+             (ann predator PredatorsAndPreyState)
+             (if (and (eq? in-state (ann prey PredatorsAndPreyState))
+                            (has-neighbors-in-state? (ann predator PredatorsAndPreyState) neighbors (list (ann 0 Nonnegative-Integer))))
+               (ann prey PredatorsAndPreyState)
+               (if (and (eq? in-state (ann empty PredatorsAndPreyState))
+                              (and (has-neighbors-in-state? (ann predator PredatorsAndPreyState) neighbors (list (ann 2 Nonnegative-Integer)))
+                                   (has-neighbors-in-state?
+                                    (ann prey PredatorsAndPreyState)
+                                    neighbors
+                                    (range 1 (add1 (set-count (moore-neighborhood)))))))
+                 (ann predator PredatorsAndPreyState)
+                 (if (and (eq? in-state (ann predator PredatorsAndPreyState))
+                                (has-neighbors-in-state?
+                                 (ann prey PredatorsAndPreyState)
+                                 neighbors
+                                 (range 1 (add1 (set-count (moore-neighborhood))))))
+                   (ann predator PredatorsAndPreyState)
+                   (if #t (ann empty PredatorsAndPreyState) (error (format "No valid transition from state ~a" in-state))))))))))
 
 ;; Shorthand macro that expands to `rule` for the common usecase of making a Rule with Posn cell and offset types, and a neighborhood consisting of the Moore neighborhood with a radius of 1
 (define-syntax (moore-rule stx)
