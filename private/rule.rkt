@@ -49,25 +49,23 @@
   #:description "or/nor"
   (pattern (~or (~datum or) (~datum nor))))
 
-  (define-syntax-class xor-implies
-  #:description "xor/implies"
-  (pattern (~or (~datum xor) (~datum implies)))))
+  (define-syntax-class xor-class
+  #:description "xor"
+  (pattern (~datum xor)))
+
+  (define-syntax-class implies-class
+  #:description "implies"
+  (pattern (~datum implies))))
 
 
 ;; Translates the condition portion of a clause into an expression that will evaluate into a boolean
 (define-syntax (parse-condition stx)
 	(syntax-parse stx
-		[(_ info-bundle:expr cond-tokens1:expr ...+ operator:or-nor cond-tokens2:expr ...+)
-			#'(operator 
-        (parse-condition info-bundle cond-tokens1 ...) 
-        (parse-condition info-bundle cond-tokens2 ...))]
-
-		[(_ info-bundle:expr cond-tokens1:expr ...+ operator:xor-implies cond-tokens2:expr ...+)
-			#'(operator 
-        (parse-condition info-bundle cond-tokens1 ...) 
-        (parse-condition info-bundle cond-tokens2 ...))]
-
-  	[(_ info-bundle:expr cond-tokens1:expr ...+ operator:and-nand cond-tokens2:expr ...+)
+		[(~or
+    (_ info-bundle:expr cond-tokens1:expr ...+ operator:implies-class cond-tokens2:expr ...+)
+      (_ info-bundle:expr cond-tokens1:expr ...+ operator:or-nor cond-tokens2:expr ...+)
+      (_ info-bundle:expr cond-tokens1:expr ...+ operator:xor-class cond-tokens2:expr ...+)
+      (_ info-bundle:expr cond-tokens1:expr ...+ operator:and-nand cond-tokens2:expr ...+))
 			#'(operator 
         (parse-condition info-bundle cond-tokens1 ...) 
         (parse-condition info-bundle cond-tokens2 ...))]
