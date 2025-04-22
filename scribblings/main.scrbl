@@ -232,8 +232,7 @@ This section documents the functions and constants exported by the colormaps mod
 }
 
 @defthing[COLOR_LIST (Listof Color)]{
-  A list of predefined colors used by the @racket[make-default-colormap] function.
-  The list contains: WHITE, BLACK, RED, GREEN, BLUE, YELLOW, PURPLE, PINK, and ORANGE.
+  A list of predefined colors containing @racket{WHITE, BLACK, RED, GREEN, BLUE, YELLOW, PURPLE, PINK, and ORANGE.
 }
 
 @subsection{Colormap Functions}
@@ -244,14 +243,9 @@ This section documents the functions and constants exported by the colormaps mod
 }
 
 @defproc[(make-default-colormap [states (Listof S)]) (ColorMap S)]{
-  Creates a colormap that assigns a distinct color to each state in the provided list.
+  Creates a colormap that assigns a distinct color to each state in the provided list. Deterministic and can support any number of arguments.
   
-  The function:
-  @itemlist[
-    @item{Maps the first state to the first color in @racket[COLOR_LIST], the second state to the second color, and so on}
-    @item{Raises an error if there are more states than available colors in @racket[COLOR_LIST]}
-    @item{Raises an error if asked to map a state not in the original list}
-  ]
+  Raises an error if asked to map a state not in the original list.
 }
 
 @defproc[(make-grayscale-colormap [minimum Integer] [maximum Integer]) (ColorMap Integer)]{

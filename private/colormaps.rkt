@@ -24,6 +24,7 @@
     ['alive BLACK]
     ['dead WHITE]))
 
+;; Makes a default colormap of non-overlapping colors using a deterministic algorithm that can support any number of arguments.
 (: make-default-colormap : (All (S) (Listof S) -> (ColorMap S)))
 (define (make-default-colormap states)
   (define colors : (Listof Color) 
@@ -38,7 +39,7 @@
       
 
 ;; TODO: Instead of taking a minimum and a maximum Integer values, 
-;; make-grayscale-colormap can take a list of states of any type and map them to greyscale
+;; make-grayscale-colormap can take a list of states of any type and map them to grayscale
 (: make-grayscale-colormap : (Integer Integer -> (ColorMap Integer)))
 (define (make-grayscale-colormap minimum maximum)
   (lambda ([state : Integer])
