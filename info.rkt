@@ -17,5 +17,4 @@
                 "scheme-lib"))
 
 (define license 'MIT)
-(define build-deps '("racket-doc" "scribble-lib" "drracket" "typed-racket-lib"))
 (define scribblings '(("scribblings/main.scrbl" () (experimental) "ca-dsl")))

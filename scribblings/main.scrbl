@@ -81,7 +81,9 @@ The library uses parametric types with a conventional meaning for the following 
 
 @defstruct*[(world C O S) ([state-map (StateMap C S)]
                            [topology (Topology C O)]
-                           [active-filter (ActiveFilter C)]) #:transparent]{
+                           [active-filter (ActiveFilter C)]) 
+                           #:transparent
+                          #:type-name World]{
   A structure representing all characteristics of a simulated "World" in which a Rule can be applied.
 }
 
@@ -232,7 +234,7 @@ This section documents the functions and constants exported by the colormaps mod
 }
 
 @defthing[COLOR_LIST (Listof Color)]{
-  A list of predefined colors containing @racket{WHITE, BLACK, RED, GREEN, BLUE, YELLOW, PURPLE, PINK, and ORANGE.
+  A list of predefined colors containing @racket{WHITE, BLACK, RED, GREEN, BLUE, YELLOW, PURPLE, PINK, and ORANGE.}
 }
 
 @subsection{Colormap Functions}
@@ -300,19 +302,10 @@ This section documents the functions exported by the neighborhoods module, which
   The function works by unioning the outlines at each layer from 1 to @racket[distance].
 }
 
-@section{Grid Utilities and State Manipulation}
+@section{Grid Utilities}
 
 This library provides utilities for creating and manipulating grid-based cellular automata and other grid-based simulations.
 
-@defform[(define-states id : type-id (state-id ...))]{
-  Defines a set of symbolic state constants and binds them to variables.
-  
-  @itemlist[
-    @item{@racket[id] - Bound to a list of all the defined states}
-    @item{@racket[type-id] - The type name for the states}
-    @item{@racket[state-id] - Each individual state identifier that will be bound to its symbolic representation}
-  ]
-}
 
 @defproc[(rect-custom [width integer?] 
                      [height integer?]
@@ -376,6 +369,9 @@ This library provides utilities for creating and manipulating grid-based cellula
   ]
   
   Multiple segments can be chained together to create complex paths.
+
+  @racket[(path : AliveOrDead (-2 3) ('dead 3 up 5 right 3 down 1 left))]
+
 }
 
 @section{Grid Topologies}
