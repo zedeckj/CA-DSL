@@ -4,7 +4,7 @@
 
 @title{CA-DSL: A DSL for designing and visualizing cellular automata}
 
-@link["https://conwaylife.com/wiki/"]{Cellular Automata} (Cellular Automata) are a beautiful demonstration of how complexity can emerge from simple rules. This library helps visualize and explore them. 
+@link["https://conwaylife.com/wiki/"]{Cellular Automata} are a beautiful demonstration of how complexity can emerge from simple rules. This library helps visualize and explore them. 
 
 @defmodule[ca-dsl]
 
