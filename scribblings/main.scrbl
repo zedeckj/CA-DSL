@@ -133,12 +133,14 @@ This section documents the macros exported by the rule module, which allow for d
     @item{@racket[clause ...] - One or more transition rules that determine state changes}
   ]
   
-  Each @racket[clause] has the form @racket[(from-state -> to-state) condition ...] where:
+  In the general case, @racket[clause] has the form @racket[(from-state -> to-state) condition ...] where:
   @itemlist[
     @item{@racket[from-state] is the initial state}
     @item{@racket[to-state] is the resulting state}
     @item{@racket[condition ...] are optional conditions that must be satisfied for the transition to occur}
   ]
+
+  Also supported is chaining multiple state transitions controlled by the same condition using @racket[(state1->state2->state3 ...) condition ...] as well as specifying any state using _.  
   
   Conditions can include:
   @itemlist[
@@ -146,7 +148,7 @@ This section documents the macros exported by the rule module, which allow for d
     @item{@verbatim{(count₁ count₂ ...) in state} - Tests if the number of neighbors in @racket[state] matches any of the counts}
     @item{@verbatim{all in state} - Tests if all neighbors are in @racket[state]}
     @item{@verbatim{some in state} - Tests if at least one neighbor is in @racket[state]}
-    @item{Boolean operators to join anything above: and, or, not, nand, implies, xor, nor}
+    @item{Boolean operators to join anything above in order of highest to lowest precedence: not, and/nand, xor, or/nor, implies }
   ]
 }
 
