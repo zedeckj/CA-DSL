@@ -18,3 +18,4 @@
 
 (define license 'MIT)
 (define scribblings '(("scribblings/main.scrbl" () (experimental) "ca-dsl")))
+(define test-omit-paths '("demos"))
