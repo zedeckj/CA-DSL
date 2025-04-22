@@ -1,6 +1,6 @@
 #lang scribble/manual
 @(require scribble/base "utils.rkt"
-          (for-label ca-dsl "../main.rkt" racket 2htdp/universe))
+          (for-label ca-dsl racket 2htdp/universe))
 
 @title{CA-DSL: A DSL for designing and visualizing cellular automata}
 
@@ -12,7 +12,7 @@
 
 @subsection{Posn}
 
-@defstruct*[posn ([x Integer] [y Integer]) #:transparent]{
+@defstruct*[Posn ([x Integer] [y Integer]) #:transparent]{
   Represents a cell's position on a 2D coordinate plane.
 }
 
@@ -79,11 +79,10 @@ The library uses parametric types with a conventional meaning for the following 
   A function type @racket[(S -> Color)] that maps states to colors for visualization.
 }
 
-@defstruct*[(world C O S) ([state-map (StateMap C S)]
+@defstruct*[(World C O S) ([state-map (StateMap C S)]
                            [topology (Topology C O)]
                            [active-filter (ActiveFilter C)]) 
-                           #:transparent
-                          #:type-name World]{
+                           #:transparent]{
   A structure representing all characteristics of a simulated "World" in which a Rule can be applied.
 }
 
