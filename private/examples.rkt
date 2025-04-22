@@ -1,5 +1,5 @@
 #lang typed/racket
-(require "types.rkt" "utils.rkt" "library/statemaps.rkt" "library/topologies.rkt")
+(require "types.rkt")
 
 #|
 ;; (StateMap C S) examples

@@ -2,7 +2,7 @@
 
 (require typed/2htdp/image typed/racket/stream)
 (module+ test (require typed/rackunit typed/2htdp/image))
-(require "../types.rkt" "../utils.rkt" "color-gen.rkt")
+(require "types.rkt" "utils.rkt" "color-gen.rkt")
 
 (define BLACK (make-color 0 0 0))
 (define WHITE (make-color 255 255 255))

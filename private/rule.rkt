@@ -1,5 +1,5 @@
 #lang typed/racket
-(require "types.rkt" "library/topologies.rkt" "library/neighborhoods.rkt" "examples.rkt" racket/syntax syntax/parse
+(require "types.rkt" "topologies.rkt" "examples.rkt" racket/syntax syntax/parse
          racket/bool (for-syntax racket/syntax syntax/parse))
 (module+ test (require syntax/macro-testing typed/rackunit "examples.rkt")
 (require syntax/macro-testing))

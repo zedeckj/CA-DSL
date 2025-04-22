@@ -1,3 +1,3 @@
 #lang typed/racket
-(require "library/main.rkt" "renderer.rkt" "rule.rkt" "run.rkt" "types.rkt")
-(provide (all-from-out "library/main.rkt" "renderer.rkt" "rule.rkt" "run.rkt" "types.rkt"))
+(require "renderer.rkt" "rule.rkt" "run.rkt" "types.rkt" "colormaps.rkt" "statemaps.rkt" "topologies.rkt")
+(provide (all-from-out "renderer.rkt" "rule.rkt" "run.rkt" "types.rkt" "colormaps.rkt" "statemaps.rkt" "topologies.rkt"))

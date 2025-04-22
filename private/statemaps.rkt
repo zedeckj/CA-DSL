@@ -1,9 +1,8 @@
 #lang typed/racket
 
-(require "../types.rkt" "../utils.rkt"
+(require "types.rkt" "utils.rkt"
     "colormaps.rkt"
     "topologies.rkt"
-    "neighborhoods.rkt"
     racket/hash
     (for-syntax syntax/parse syntax/macro-testing))
 (require/typed racket/hash 

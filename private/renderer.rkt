@@ -5,7 +5,7 @@
   #;(require "expected-images.rkt" "examples.rkt")) ; Including the test images causes a "write: cannot marshal value that is embedded in compiled code value: (object:image% ... ...) error
 
 (require typed/2htdp/image)
-(require "types.rkt" "library/colormaps.rkt")
+(require "types.rkt" "colormaps.rkt")
 
 ;; Defines the dimensions of the big bang window
 (define WINDOW-WIDTH 1000)
