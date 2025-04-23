@@ -3,6 +3,8 @@
           (for-label ca-dsl racket 2htdp/universe))
 
 @title{CA-DSL: A DSL for designing and visualizing cellular automata}
+@author+email["Jordan Zedeck" "zedeck.j@northeastern.edu"]
+@author+email["Nate White" "natewhite345@gmail.com"]
 
 @link["https://conwaylife.com/wiki/"]{Cellular Automata} are a beautiful demonstration of how complexity can emerge from simple rules. This library helps visualize and explore them. 
 
